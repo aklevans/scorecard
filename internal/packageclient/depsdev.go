@@ -52,6 +52,28 @@ type ProjectPackageVersions struct {
 	} `json:"versions"`
 }
 
+type Package struct {
+	// field alignment
+	//nolint:govet
+	Versions []struct {
+		VersionKey struct {
+			System  string `json:"system"`
+			Name    string `json:"name"`
+			Version string `json:"version"`
+		} `json:"versionKey"`
+		SLSAProvenances []struct {
+			SourceRepository string `json:"sourceRepository"`
+			Commit           string `json:"commit"`
+			Verified         bool   `json:"verified"`
+		} `json:"slsaProvenances"`
+		RelationType       string `json:"relationType"`
+		RelationProvenance string `json:"relationProvenance"`
+	} `json:"versions"`
+}
+
+type PackageDependencies struct {
+}
+
 func CreateDepsDevClient() ProjectPackageClient {
 	return depsDevClient{
 		client: &http.Client{},
@@ -99,5 +121,47 @@ func (d depsDevClient) GetProjectPackageVersions(
 		return nil, fmt.Errorf("deps.dev json.Unmarshal: %w", err)
 	}
 
+	return &res, nil
+}
+
+func (d depsDevClient) GetPackageDependencies(
+	ctx context.Context, host, project string,
+) (*PackageDependencies, error) {
+	packageName := fmt.Sprintf("%s/%s", host, project)
+
+	// GetProjectPackageVersions is used to get the system
+	versions, err := d.GetProjectPackageVersions(ctx, host, project)
+	if err != nil {
+		return nil, fmt.Errorf("deps.dev GetProjectPackageVersions: %w", err)
+	}
+	system := versions.Versions[0].VersionKey.System
+
+	// GetPackage used to get the default version. Requires the system to be specified so
+	// this call must be done after GetProjectPackageVersions
+	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s", url.QueryEscape(system), url.QueryEscape(packageName))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
+	if err != nil {
+		return nil, fmt.Errorf("http.NewRequestWithContext: %w", err)
+	}
+	resp, err := d.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("deps.dev GetPackage: %w", err)
+	}
+	defer resp.Body.Close()
+
+	version := ""
+	query = fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s/versions/%s:dependencies", url.QueryEscape(system), url.QueryEscape(packageName), url.QueryEscape(version))
+	req, err = http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
+	if err != nil {
+		return nil, fmt.Errorf("http.NewRequestWithContext: %w", err)
+	}
+
+	resp, err = d.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("deps.dev GetPackageDependencies: %w", err)
+	}
+	defer resp.Body.Close()
+
+	res := PackageDependencies{}
 	return &res, nil
 }
