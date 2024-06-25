@@ -79,3 +79,33 @@ func (mr *MockProjectPackageClientMockRecorder) GetProjectPackageVersions(ctx, h
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectPackageVersions", reflect.TypeOf((*MockProjectPackageClient)(nil).GetProjectPackageVersions), ctx, host, project)
 }
+
+// GetURI mocks base method.
+func (m *MockProjectPackageClient) GetURI(ctx context.Context, name, version, system string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetURI", ctx, name, version, system)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetURI indicates an expected call of GetURI.
+func (mr *MockProjectPackageClientMockRecorder) GetURI(ctx, name, version, system interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetURI", reflect.TypeOf((*MockProjectPackageClient)(nil).GetURI), ctx, name, version, system)
+}
+
+// GetVersion mocks base method.
+func (m *MockProjectPackageClient) GetVersion(ctx context.Context, name, version, system string) (*packageclient.VersionData, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetVersion", ctx, name, version, system)
+	ret0, _ := ret[0].(*packageclient.VersionData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVersion indicates an expected call of GetVersion.
+func (mr *MockProjectPackageClientMockRecorder) GetVersion(ctx, name, version, system interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVersion", reflect.TypeOf((*MockProjectPackageClient)(nil).GetVersion), ctx, name, version, system)
+}

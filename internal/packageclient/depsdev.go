@@ -22,6 +22,13 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strings"
+)
+
+var (
+	sourceRepoLabel = "SOURCE_REPO"
+	githubDomain    = regexp.MustCompile("github.com/.*")
 )
 
 // This interface lets Scorecard look up package manager metadata for a project.
@@ -29,6 +36,8 @@ type ProjectPackageClient interface {
 	GetProjectPackageVersions(ctx context.Context, host, project string) (*ProjectPackageVersions, error)
 	GetPackage(ctx context.Context, host, project, system string) (*PackageData, error)
 	GetPackageDependencies(ctx context.Context, host, project string) (*PackageDependencies, error)
+	GetVersion(ctx context.Context, name, version, system string) (*VersionData, error)
+	GetURI(ctx context.Context, name, version, system string) (string, error)
 }
 
 type depsDevClient struct {
@@ -88,6 +97,37 @@ type PackageDependencies struct {
 		Requirement string `json:"requirement"`
 	}
 	Error string `json:"error"`
+}
+
+type VersionData struct {
+	VersionKey struct {
+		System  string `json:"system"`
+		Name    string `json:"name"`
+		Version string `json:"version"`
+	} `json:"versionKey"`
+	Purl         string   `json:"purl"`
+	PublishedAt  string   `json:"publishedAt"`
+	IsDefault    bool     `json:"isDefault"`
+	Licenses     []string `json:"licenses"`
+	AdvisoryKeys []any    `json:"advisoryKeys"`
+	Links        []struct {
+		Label string `json:"label"`
+		URL   string `json:"url"`
+	} `json:"links"`
+	// SlsaProvenances []any    `json:"slsaProvenances"`
+	// Registries      []string `json:"registries"`
+	// RelatedProjects []struct {
+	// 	ProjectKey struct {
+	// 		ID string `json:"id"`
+	// 	} `json:"projectKey"`
+	// 	RelationProvenance string `json:"relationProvenance"`
+	// 	RelationType       string `json:"relationType"`
+	// } `json:"relatedProjects"`
+	// UpstreamIdentifiers []struct {
+	// 	PackageName   string `json:"packageName"`
+	// 	VersionString string `json:"versionString"`
+	// 	Source        string `json:"source"`
+	// } `json:"upstreamIdentifiers"`
 }
 
 func CreateDepsDevClient() ProjectPackageClient {
@@ -236,4 +276,57 @@ func (d depsDevClient) GetPackage(
 		return nil, fmt.Errorf("deps.dev json.Unmarshal: %w", err)
 	}
 	return &res, nil
+}
+
+func (d depsDevClient) GetVersion(
+	ctx context.Context, name, version, system string,
+) (*VersionData, error) {
+	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s/versions/%s", url.QueryEscape(system), url.QueryEscape(name), url.QueryEscape(version))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
+	if err != nil {
+		return nil, fmt.Errorf("http.NewRequestWithContext: %w", err)
+	}
+	resp, err := d.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("deps.dev GetVersion: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var res VersionData
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, ErrProjNotFoundInDepsDev
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: %s", ErrDepsDevAPI, resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("resp.Body.Read: %w", err)
+	}
+
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, fmt.Errorf("deps.dev json.Unmarshal: %w", err)
+	}
+	return &res, nil
+}
+
+func (d depsDevClient) GetURI(
+	ctx context.Context, name, version, system string,
+) (string, error) {
+	versionInfo, _ := d.GetVersion(ctx, name, version, system)
+	trimmedUrl := ""
+	for _, ver := range versionInfo.Links {
+		if ver.Label == sourceRepoLabel {
+			trimmedUrl = strings.TrimSuffix(ver.URL, ".git")
+			trimmedUrl = githubDomain.FindString(trimmedUrl)
+			break
+		}
+	}
+	if trimmedUrl == "" {
+		return "", fmt.Errorf("deps.dev GetURI: %s", name)
+	}
+	return trimmedUrl, nil
 }

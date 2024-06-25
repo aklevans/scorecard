@@ -99,3 +99,57 @@ var _ = Describe("E2E TEST: depsdevclient.GetPackageDependencies", func() {
 		})
 	})
 })
+
+var _ = Describe("E2E TEST: depsdevclient.GetVersion", func() {
+	var client packageclient.ProjectPackageClient
+
+	Context("E2E TEST: Confirm ProjectPackageClient works", func() {
+		It("Should receive a non-empty response from deps.dev for existing projects", func() {
+			client = packageclient.CreateDepsDevClient()
+			versionData, err := client.GetVersion(
+				context.Background(), "github.com/ossf/scorecard", "v1.2.0", "GO",
+			)
+			Expect(err).Should(BeNil())
+			Expect(versionData.VersionKey.Version).Should(Equal("v1.2.0"))
+		})
+		It("Should error from deps.dev for nonexistent projects", func() {
+			client = packageclient.CreateDepsDevClient()
+			versions, err := client.GetVersion(
+				context.Background(), "github.com/ossf/scorecard-E2E-TEST-DOES-NOT-EXIST", "v2.4.3", "GO",
+			)
+			Expect(err).ShouldNot(BeNil())
+			Expect(versions).Should(BeNil())
+		})
+	})
+})
+
+var _ = Describe("E2E TEST: depsdevclient.GetURI", func() {
+	var client packageclient.ProjectPackageClient
+
+	Context("E2E TEST: Confirm ProjectPackageClient works", func() {
+		It("Should receive a non-empty response from deps.dev for existing projects", func() {
+			client = packageclient.CreateDepsDevClient()
+			URI, err := client.GetURI(
+				context.Background(), "github.com/ossf/scorecard", "v1.2.0", "GO",
+			)
+			Expect(err).Should(BeNil())
+			Expect(URI).Should(Equal("github.com/ossf/scorecard"))
+		})
+		It("Should error from deps.dev for nonexistent projects", func() {
+			client = packageclient.CreateDepsDevClient()
+			versions, err := client.GetVersion(
+				context.Background(), "github.com/ossf/scorecard-E2E-TEST-DOES-NOT-EXIST", "v2.4.3", "GO",
+			)
+			Expect(err).ShouldNot(BeNil())
+			Expect(versions).Should(BeNil())
+		})
+		It("Should receive a non-empty response from deps.dev for existing projects", func() {
+			client = packageclient.CreateDepsDevClient()
+			URI, err := client.GetURI(
+				context.Background(), "@colors/colors", "1.5.0", "NPM",
+			)
+			Expect(err).Should(BeNil())
+			Expect(URI).Should(Equal("github.com/DABH/colors.js"))
+		})
+	})
+})
