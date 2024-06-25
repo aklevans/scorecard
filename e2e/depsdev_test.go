@@ -53,3 +53,49 @@ var _ = Describe("E2E TEST: depsdevclient.GetProjectPackageVersions", func() {
 		})
 	})
 })
+
+var _ = Describe("E2E TEST: depsdevclient.GetPackage", func() {
+	var client packageclient.ProjectPackageClient
+
+	Context("E2E TEST: Confirm ProjectPackageClient works", func() {
+		It("Should receive a non-empty response from deps.dev for existing projects", func() {
+			client = packageclient.CreateDepsDevClient()
+			versions, err := client.GetPackage(
+				context.Background(), "github.com", "ossf/scorecard", "GO",
+			)
+			Expect(err).Should(BeNil())
+			Expect(len(versions.Versions)).Should(BeNumerically(">", 0))
+		})
+		It("Should error from deps.dev for nonexistent projects", func() {
+			client = packageclient.CreateDepsDevClient()
+			versions, err := client.GetPackage(
+				context.Background(), "github.com", "ossf/scorecard-E2E-TEST-DOES-NOT-EXIST", "GO",
+			)
+			Expect(err).ShouldNot(BeNil())
+			Expect(versions).Should(BeNil())
+		})
+	})
+})
+
+var _ = Describe("E2E TEST: depsdevclient.GetPackageDependencies", func() {
+	var client packageclient.ProjectPackageClient
+
+	Context("E2E TEST: Confirm ProjectPackageClient works", func() {
+		It("Should receive a non-empty response from deps.dev for existing projects", func() {
+			client = packageclient.CreateDepsDevClient()
+			dependencies, err := client.GetPackageDependencies(
+				context.Background(), "github.com", "ossf/scorecard",
+			)
+			Expect(err).Should(BeNil())
+			Expect(len(dependencies.Nodes)).Should(BeNumerically(">", 0))
+		})
+		It("Should error from deps.dev for nonexistent projects", func() {
+			client = packageclient.CreateDepsDevClient()
+			versions, err := client.GetPackageDependencies(
+				context.Background(), "github.com", "ossf/scorecard-E2E-TEST-DOES-NOT-EXIST",
+			)
+			Expect(err).ShouldNot(BeNil())
+			Expect(versions).Should(BeNil())
+		})
+	})
+})

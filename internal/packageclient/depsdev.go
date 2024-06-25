@@ -27,6 +27,8 @@ import (
 // This interface lets Scorecard look up package manager metadata for a project.
 type ProjectPackageClient interface {
 	GetProjectPackageVersions(ctx context.Context, host, project string) (*ProjectPackageVersions, error)
+	GetPackage(ctx context.Context, host, project, system string) (*PackageData, error)
+	GetPackageDependencies(ctx context.Context, host, project string) (*PackageDependencies, error)
 }
 
 type depsDevClient struct {
@@ -52,26 +54,40 @@ type ProjectPackageVersions struct {
 	} `json:"versions"`
 }
 
-type Package struct {
-	// field alignment
-	//nolint:govet
+type PackageData struct {
+	PackageKey struct {
+		System string `json:"system"`
+		Name   string `json:"name"`
+	} `json:"packageKey"`
 	Versions []struct {
 		VersionKey struct {
 			System  string `json:"system"`
 			Name    string `json:"name"`
 			Version string `json:"version"`
 		} `json:"versionKey"`
-		SLSAProvenances []struct {
-			SourceRepository string `json:"sourceRepository"`
-			Commit           string `json:"commit"`
-			Verified         bool   `json:"verified"`
-		} `json:"slsaProvenances"`
-		RelationType       string `json:"relationType"`
-		RelationProvenance string `json:"relationProvenance"`
+		Purl        string `json:"purl"`
+		PublishedAt string `json:"publishedAt"`
+		IsDefault   bool   `json:"isDefault"`
 	} `json:"versions"`
 }
 
 type PackageDependencies struct {
+	Nodes []struct {
+		VersionKey struct {
+			System  string `json:"system"`
+			Name    string `json:"name"`
+			Version string `json:"version"`
+		}
+		Bundled  bool     `json:"bundled"`
+		Relation string   `json:"relation"`
+		Errors   []string `json:"errors"`
+	} `json:"nodes"`
+	Edges []struct {
+		FromNode    int    `json:"fromNode"`
+		ToNode      int    `json:"toNode"`
+		Requirement string `json:"requirement"`
+	}
+	Error string `json:"error"`
 }
 
 func CreateDepsDevClient() ProjectPackageClient {
@@ -138,6 +154,58 @@ func (d depsDevClient) GetPackageDependencies(
 
 	// GetPackage used to get the default version. Requires the system to be specified so
 	// this call must be done after GetProjectPackageVersions
+	packageInfo, err := d.GetPackage(ctx, host, project, system)
+	if err != nil {
+		return nil, fmt.Errorf("deps.dev GetPackage: %w", err)
+	}
+
+	defaultVersion := packageInfo.Versions[0].VersionKey.Version
+	for _, ver := range packageInfo.Versions {
+		if ver.IsDefault {
+			defaultVersion = ver.VersionKey.Version
+			break
+		}
+	}
+
+	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s/versions/%s:dependencies",
+		url.QueryEscape(system), url.QueryEscape(packageName), url.QueryEscape(defaultVersion))
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
+	if err != nil {
+		return nil, fmt.Errorf("http.NewRequestWithContext: %w", err)
+	}
+	resp, err := d.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("deps.dev GetPackageDependencies: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var res PackageDependencies
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, ErrProjNotFoundInDepsDev
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: %s", ErrDepsDevAPI, resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("resp.Body.Read: %w", err)
+	}
+
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, fmt.Errorf("deps.dev json.Unmarshal: %w", err)
+	}
+	return &res, nil
+}
+
+func (d depsDevClient) GetPackage(
+	ctx context.Context, host, project string, system string,
+) (*PackageData, error) {
+	packageName := fmt.Sprintf("%s/%s", host, project)
 	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s", url.QueryEscape(system), url.QueryEscape(packageName))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
 	if err != nil {
@@ -149,19 +217,23 @@ func (d depsDevClient) GetPackageDependencies(
 	}
 	defer resp.Body.Close()
 
-	version := ""
-	query = fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s/versions/%s:dependencies", url.QueryEscape(system), url.QueryEscape(packageName), url.QueryEscape(version))
-	req, err = http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
-	if err != nil {
-		return nil, fmt.Errorf("http.NewRequestWithContext: %w", err)
+	var res PackageData
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, ErrProjNotFoundInDepsDev
 	}
 
-	resp, err = d.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("deps.dev GetPackageDependencies: %w", err)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: %s", ErrDepsDevAPI, resp.Status)
 	}
-	defer resp.Body.Close()
 
-	res := PackageDependencies{}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("resp.Body.Read: %w", err)
+	}
+
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, fmt.Errorf("deps.dev json.Unmarshal: %w", err)
+	}
 	return &res, nil
 }
