@@ -316,7 +316,10 @@ func (d depsDevClient) GetVersion(
 func (d depsDevClient) GetURI(
 	ctx context.Context, name, version, system string,
 ) (string, error) {
-	versionInfo, _ := d.GetVersion(ctx, name, version, system)
+	versionInfo, err := d.GetVersion(ctx, name, version, system)
+	if err != nil {
+		return "", fmt.Errorf("deps.dev GetVersion: %s", name)
+	}
 	trimmedUrl := ""
 	for _, ver := range versionInfo.Links {
 		if ver.Label == sourceRepoLabel {

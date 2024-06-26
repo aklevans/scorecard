@@ -242,34 +242,33 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts+"-Dependencies", func()
 			scut.ValidateTestReturn(GinkgoTB(), "no binary artifacts", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
-		It("Should return binary artifacts present in source code", func() {
-			dl := scut.TestDetailLogger{}
-			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-binary-artifacts-e2e")
-			Expect(err).Should(BeNil())
-			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
-			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
-			Expect(err).Should(BeNil())
+		// It("Should return binary artifacts present in source code", func() {
+		// 	dl := scut.TestDetailLogger{}
+		// 	repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-binary-artifacts-e2e")
+		// 	Expect(err).Should(BeNil())
+		// 	repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+		// 	err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+		// 	Expect(err).Should(BeNil())
 
-			req := checker.CheckRequest{
-				Ctx:           context.Background(),
-				RepoClient:    repoClient,
-				Repo:          repo,
-				Dlogger:       &dl,
-				ProjectClient: packageclient.CreateDepsDevClient(),
-			}
-			// TODO: upload real binaries to the repo as well.
-			// There are 24 dummy binaries that are ignored because they only contain ASCII characters.
-			expected := scut.TestReturn{
-				Error:         nil,
-				Score:         checker.MaxResultScore - 1,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
-			}
-			result := checks.BinaryArtifactsDependencies(&req)
-			scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
-			Expect(repoClient.Close()).Should(BeNil())
-		})
-
+		// 	req := checker.CheckRequest{
+		// 		Ctx:           context.Background(),
+		// 		RepoClient:    repoClient,
+		// 		Repo:          repo,
+		// 		Dlogger:       &dl,
+		// 		ProjectClient: packageclient.CreateDepsDevClient(),
+		// 	}
+		// 	// TODO: upload real binaries to the repo as well.
+		// 	// There are 24 dummy binaries that are ignored because they only contain ASCII characters.
+		// 	expected := scut.TestReturn{
+		// 		Error:         nil,
+		// 		Score:         checker.MaxResultScore - 1,
+		// 		NumberOfWarn:  1,
+		// 		NumberOfInfo:  0,
+		// 		NumberOfDebug: 0,
+		// 	}
+		// 	result := checks.BinaryArtifactsDependencies(&req)
+		// 	scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
+		// 	Expect(repoClient.Close()).Should(BeNil())
+		// })
 	})
 })

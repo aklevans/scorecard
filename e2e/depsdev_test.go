@@ -137,11 +137,11 @@ var _ = Describe("E2E TEST: depsdevclient.GetURI", func() {
 		})
 		It("Should error from deps.dev for nonexistent projects", func() {
 			client = packageclient.CreateDepsDevClient()
-			versions, err := client.GetVersion(
+			URI, err := client.GetURI(
 				context.Background(), "github.com/ossf/scorecard-E2E-TEST-DOES-NOT-EXIST", "v2.4.3", "GO",
 			)
 			Expect(err).ShouldNot(BeNil())
-			Expect(versions).Should(BeNil())
+			Expect(URI).Should(Equal(""))
 		})
 		It("Should receive a non-empty response from deps.dev for existing projects", func() {
 			client = packageclient.CreateDepsDevClient()
@@ -150,6 +150,14 @@ var _ = Describe("E2E TEST: depsdevclient.GetURI", func() {
 			)
 			Expect(err).Should(BeNil())
 			Expect(URI).Should(Equal("github.com/DABH/colors.js"))
+		})
+		It("Should error from deps.dev for non-github url", func() {
+			client = packageclient.CreateDepsDevClient()
+			URI, err := client.GetURI(
+				context.Background(), "golang.org/x/crypto", "v0.24.0", "GO",
+			)
+			Expect(err).ShouldNot(BeNil())
+			Expect(URI).Should(Equal(""))
 		})
 	})
 })

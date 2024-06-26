@@ -15,7 +15,6 @@
 package checks
 
 import (
-	"context"
 	"strings"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -80,9 +79,11 @@ func BinaryArtifactsDependencies(c *checker.CheckRequest) checker.CheckResult {
 	}
 	rawData := checker.BinaryArtifactData{}
 	logger := sclog.NewLogger(sclog.DefaultLevel)
+	numSkipped := 0
 	for _, dep := range dependencies.Nodes {
 		depURI, err := c.ProjectClient.GetURI(c.Ctx, dep.VersionKey.Name, dep.VersionKey.Version, dep.VersionKey.System)
 		if err != nil {
+			numSkipped += 1
 			continue // if cant find github url for dependency, skip for now
 		}
 
@@ -97,7 +98,7 @@ func BinaryArtifactsDependencies(c *checker.CheckRequest) checker.CheckResult {
 			return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
 		}
 		dc := checker.CheckRequest{
-			Ctx:        context.Background(),
+			Ctx:        c.Ctx,
 			RepoClient: repoClient,
 			Repo:       repo,
 			Dlogger:    c.Dlogger,
