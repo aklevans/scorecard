@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/localdir"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -208,6 +209,66 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			// New version.
 			scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
 			Expect(x.Close()).Should(BeNil())
+		})
+	})
+})
+
+var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts+"-Dependencies", func() {
+	Context("E2E TEST:Binary artifacts are not present in source code", func() {
+		It("Should return not binary artifacts in source code", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:           context.Background(),
+				RepoClient:    repoClient,
+				Repo:          repo,
+				Dlogger:       &dl,
+				ProjectClient: packageclient.CreateDepsDevClient(),
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+
+			result := checks.BinaryArtifactsDependencies(&req)
+			scut.ValidateTestReturn(GinkgoTB(), "no binary artifacts", &expected, &result, &dl)
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return binary artifacts present in dependency's source code", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("aklevans/scorecard-check-binary-artifacts-in-dependencies-e2e")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:           context.Background(),
+				RepoClient:    repoClient,
+				Repo:          repo,
+				Dlogger:       &dl,
+				ProjectClient: packageclient.CreateDepsDevClient(),
+			}
+			// TODO: upload real binaries to the repo as well.
+			// There are 24 dummy binaries that are ignored because they only contain ASCII characters.
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore - 1,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.BinaryArtifactsDependencies(&req)
+			scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })
