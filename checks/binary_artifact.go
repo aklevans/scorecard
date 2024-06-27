@@ -49,8 +49,7 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
 	}
-	// uri := c.Repo.URI()
-	// println(uri)
+
 	// Set the raw results.
 	pRawResults := getRawResults(c)
 	pRawResults.BinaryArtifactResults = rawData
@@ -80,6 +79,8 @@ func BinaryArtifactsDependencies(c *checker.CheckRequest) checker.CheckResult {
 	rawData := checker.BinaryArtifactData{}
 	logger := sclog.NewLogger(sclog.DefaultLevel)
 	numSkipped := 0
+
+	// todo: self is currently included in dependency list. Exclude?
 	for _, dep := range dependencies.Nodes {
 		depURI, err := c.ProjectClient.GetURI(c.Ctx, dep.VersionKey.Name, dep.VersionKey.Version, dep.VersionKey.System)
 		if err != nil {

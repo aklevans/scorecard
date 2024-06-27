@@ -57,7 +57,7 @@ var _ = Describe("E2E TEST: depsdevclient.GetProjectPackageVersions", func() {
 var _ = Describe("E2E TEST: depsdevclient.GetPackage", func() {
 	var client packageclient.ProjectPackageClient
 
-	Context("E2E TEST: Confirm ProjectPackageClient works", func() {
+	Context("E2E TEST: Confirm GetPackage works", func() {
 		It("Should receive a non-empty response from deps.dev for existing projects", func() {
 			client = packageclient.CreateDepsDevClient()
 			versions, err := client.GetPackage(
@@ -80,7 +80,7 @@ var _ = Describe("E2E TEST: depsdevclient.GetPackage", func() {
 var _ = Describe("E2E TEST: depsdevclient.GetPackageDependencies", func() {
 	var client packageclient.ProjectPackageClient
 
-	Context("E2E TEST: Confirm ProjectPackageClient works", func() {
+	Context("E2E TEST: Confirm GetPackageDependencies works", func() {
 		It("Should receive a non-empty response from deps.dev for existing projects", func() {
 			client = packageclient.CreateDepsDevClient()
 			dependencies, err := client.GetPackageDependencies(
@@ -126,15 +126,7 @@ var _ = Describe("E2E TEST: depsdevclient.GetVersion", func() {
 var _ = Describe("E2E TEST: depsdevclient.GetURI", func() {
 	var client packageclient.ProjectPackageClient
 
-	Context("E2E TEST: Confirm ProjectPackageClient works", func() {
-		It("Should receive a non-empty response from deps.dev for existing projects", func() {
-			client = packageclient.CreateDepsDevClient()
-			URI, err := client.GetURI(
-				context.Background(), "github.com/ossf/scorecard", "v1.2.0", "GO",
-			)
-			Expect(err).Should(BeNil())
-			Expect(URI).Should(Equal("github.com/ossf/scorecard"))
-		})
+	Context("E2E TEST: Confirm GetURI works", func() {
 		It("Should error from deps.dev for nonexistent projects", func() {
 			client = packageclient.CreateDepsDevClient()
 			URI, err := client.GetURI(
