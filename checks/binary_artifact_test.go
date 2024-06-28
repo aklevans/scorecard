@@ -104,7 +104,7 @@ func TestBinaryArtifacts(t *testing.T) {
 	}
 }
 
-// currently only allows up to two dependencies
+// currently only allows up to two dependencies.
 func TestBinaryArtifactsDependencies(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -151,7 +151,6 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 						files = append(files, file.Name())
 					}
 					print(files)
-
 				}
 				return files, err
 			}).AnyTimes()
@@ -174,7 +173,6 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 						files = append(files, file.Name())
 					}
 					print(files)
-
 				}
 				return files, err
 			}).AnyTimes()
@@ -243,7 +241,9 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 
 			dl := scut.TestDetailLogger{}
 
-			repo, _ := githubrepo.MakeGithubRepo("ossf/scorecard") // just to avoid null pointers. Actual value not critical
+			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard") // just to avoid null pointers. Actual value not critical
+			if err != nil {
+			}
 			req := checker.CheckRequest{
 				Ctx:              ctx,
 				Dlogger:          &dl,

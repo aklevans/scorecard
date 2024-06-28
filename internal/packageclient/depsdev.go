@@ -95,7 +95,7 @@ type PackageDependencies struct {
 		FromNode    int    `json:"fromNode"`
 		ToNode      int    `json:"toNode"`
 		Requirement string `json:"requirement"`
-	}
+	} `json:"edges"`
 	Error string `json:"error"`
 }
 
@@ -232,7 +232,8 @@ func (d depsDevClient) GetPackage(
 	ctx context.Context, host, project string, system string,
 ) (*PackageData, error) {
 	packageName := fmt.Sprintf("%s/%s", host, project)
-	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s", url.QueryEscape(system), url.QueryEscape(packageName))
+	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s",
+		url.QueryEscape(system), url.QueryEscape(packageName))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
 	if err != nil {
 		return nil, fmt.Errorf("http.NewRequestWithContext: %w", err)
@@ -267,7 +268,8 @@ func (d depsDevClient) GetPackage(
 func (d depsDevClient) GetVersion(
 	ctx context.Context, name, version, system string,
 ) (*VersionData, error) {
-	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s/versions/%s", url.QueryEscape(system), url.QueryEscape(name), url.QueryEscape(version))
+	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s/versions/%s", url.QueryEscape(system),
+		url.QueryEscape(name), url.QueryEscape(version))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
 	if err != nil {
 		return nil, fmt.Errorf("http.NewRequestWithContext: %w", err)
@@ -306,16 +308,16 @@ func (d depsDevClient) GetURI(
 	if err != nil {
 		return "", fmt.Errorf("deps.dev GetVersion: %s", name)
 	}
-	trimmedUrl := ""
+	trimmedURL := ""
 	for _, ver := range versionInfo.Links {
 		if ver.Label == sourceRepoLabel {
-			trimmedUrl = strings.TrimSuffix(ver.URL, ".git")
-			trimmedUrl = githubDomain.FindString(trimmedUrl)
+			trimmedURL = strings.TrimSuffix(ver.URL, ".git")
+			trimmedURL = githubDomain.FindString(trimmedURL)
 			break
 		}
 	}
-	if trimmedUrl == "" {
+	if trimmedURL == "" {
 		return "", fmt.Errorf("deps.dev GetURI: %s", name)
 	}
-	return trimmedUrl, nil
+	return trimmedURL, nil
 }

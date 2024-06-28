@@ -51,11 +51,12 @@ func (mr *MockDependencyClientMockRecorder) CreateGithubRepoClient(arg0, arg1 in
 }
 
 // CreateGitlabRepoClient mocks base method.
-func (m *MockDependencyClient) CreateGitlabRepoClient(arg0 context.Context, arg1 string) clients.RepoClient {
+func (m *MockDependencyClient) CreateGitlabRepoClient(arg0 context.Context, arg1 string) (clients.RepoClient, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateGitlabRepoClient", arg0, arg1)
 	ret0, _ := ret[0].(clients.RepoClient)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateGitlabRepoClient indicates an expected call of CreateGitlabRepoClient.

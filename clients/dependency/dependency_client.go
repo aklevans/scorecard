@@ -28,7 +28,7 @@ import (
 
 type DependencyClient interface {
 	CreateGithubRepoClient(context.Context, *log.Logger) clients.RepoClient
-	CreateGitlabRepoClient(context.Context, string) clients.RepoClient
+	CreateGitlabRepoClient(context.Context, string) (clients.RepoClient, error)
 }
 
 type depClient struct {
@@ -45,7 +45,7 @@ func (d depClient) CreateGithubRepoClient(ctx context.Context, l *log.Logger) cl
 	return githubrepo.CreateGithubRepoClient(ctx, l)
 }
 
-func (d depClient) CreateGitlabRepoClient(ctx context.Context, host string) clients.RepoClient {
-	ret, _ := gitlabrepo.CreateGitlabClient(ctx, host)
-	return ret
+func (d depClient) CreateGitlabRepoClient(ctx context.Context, host string) (clients.RepoClient, error) {
+	ret, err := gitlabrepo.CreateGitlabClient(ctx, host)
+	return ret, err
 }
