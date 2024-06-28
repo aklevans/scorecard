@@ -78,7 +78,7 @@ func BinaryArtifactsDependencies(c *checker.CheckRequest) checker.CheckResult {
 	}
 	rawData := checker.BinaryArtifactData{}
 	logger := sclog.NewLogger(sclog.DefaultLevel)
-	numSkipped := 0
+	numSkipped := 0 // do something with this eventually?
 
 	// todo: self is currently included in dependency list. Exclude?
 	for _, dep := range dependencies.Nodes {
@@ -88,7 +88,8 @@ func BinaryArtifactsDependencies(c *checker.CheckRequest) checker.CheckResult {
 			continue // if cant find github url for dependency, skip for now
 		}
 
-		repo, repoClient, _, _, _, _, err := checker.GetClients(c.Ctx, depURI, "", logger)
+		repoClient := c.DependencyClient.CreateGithubRepoClient(c.Ctx, logger)
+		repo, _, _, _, _, _, err := checker.GetClients(c.Ctx, depURI, "", logger) //change this?
 		if err != nil {
 			e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 			return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)

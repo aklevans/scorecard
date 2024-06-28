@@ -114,20 +114,6 @@ type VersionData struct {
 		Label string `json:"label"`
 		URL   string `json:"url"`
 	} `json:"links"`
-	// SlsaProvenances []any    `json:"slsaProvenances"`
-	// Registries      []string `json:"registries"`
-	// RelatedProjects []struct {
-	// 	ProjectKey struct {
-	// 		ID string `json:"id"`
-	// 	} `json:"projectKey"`
-	// 	RelationProvenance string `json:"relationProvenance"`
-	// 	RelationType       string `json:"relationType"`
-	// } `json:"relatedProjects"`
-	// UpstreamIdentifiers []struct {
-	// 	PackageName   string `json:"packageName"`
-	// 	VersionString string `json:"versionString"`
-	// 	Source        string `json:"source"`
-	// } `json:"upstreamIdentifiers"`
 }
 
 func CreateDepsDevClient() ProjectPackageClient {
