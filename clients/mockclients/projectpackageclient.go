@@ -36,33 +36,47 @@ func (m *MockProjectPackageClient) EXPECT() *MockProjectPackageClientMockRecorde
 }
 
 // GetPackage mocks base method.
-func (m *MockProjectPackageClient) GetPackage(ctx context.Context, host, project, system string) (*packageclient.PackageData, error) {
+func (m *MockProjectPackageClient) GetPackage(ctx context.Context) (*packageclient.PackageData, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPackage", ctx, host, project, system)
+	ret := m.ctrl.Call(m, "GetPackage", ctx)
 	ret0, _ := ret[0].(*packageclient.PackageData)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetPackage indicates an expected call of GetPackage.
-func (mr *MockProjectPackageClientMockRecorder) GetPackage(ctx, host, project, system interface{}) *gomock.Call {
+func (mr *MockProjectPackageClientMockRecorder) GetPackage(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackage", reflect.TypeOf((*MockProjectPackageClient)(nil).GetPackage), ctx, host, project, system)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackage", reflect.TypeOf((*MockProjectPackageClient)(nil).GetPackage), ctx)
 }
 
 // GetPackageDependencies mocks base method.
-func (m *MockProjectPackageClient) GetPackageDependencies(ctx context.Context, host, project string) (*packageclient.PackageDependencies, error) {
+func (m *MockProjectPackageClient) GetPackageDependencies(ctx context.Context) (*packageclient.PackageDependencies, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPackageDependencies", ctx, host, project)
+	ret := m.ctrl.Call(m, "GetPackageDependencies", ctx)
 	ret0, _ := ret[0].(*packageclient.PackageDependencies)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetPackageDependencies indicates an expected call of GetPackageDependencies.
-func (mr *MockProjectPackageClientMockRecorder) GetPackageDependencies(ctx, host, project interface{}) *gomock.Call {
+func (mr *MockProjectPackageClientMockRecorder) GetPackageDependencies(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackageDependencies", reflect.TypeOf((*MockProjectPackageClient)(nil).GetPackageDependencies), ctx, host, project)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackageDependencies", reflect.TypeOf((*MockProjectPackageClient)(nil).GetPackageDependencies), ctx)
+}
+
+// GetPackageName mocks base method.
+func (m *MockProjectPackageClient) GetPackageName() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPackageName")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetPackageName indicates an expected call of GetPackageName.
+func (mr *MockProjectPackageClientMockRecorder) GetPackageName() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackageName", reflect.TypeOf((*MockProjectPackageClient)(nil).GetPackageName))
 }
 
 // GetProjectPackageVersions mocks base method.
@@ -78,6 +92,20 @@ func (m *MockProjectPackageClient) GetProjectPackageVersions(ctx context.Context
 func (mr *MockProjectPackageClientMockRecorder) GetProjectPackageVersions(ctx, host, project interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectPackageVersions", reflect.TypeOf((*MockProjectPackageClient)(nil).GetProjectPackageVersions), ctx, host, project)
+}
+
+// GetSystem mocks base method.
+func (m *MockProjectPackageClient) GetSystem() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSystem")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetSystem indicates an expected call of GetSystem.
+func (mr *MockProjectPackageClientMockRecorder) GetSystem() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSystem", reflect.TypeOf((*MockProjectPackageClient)(nil).GetSystem))
 }
 
 // GetURI mocks base method.

@@ -34,14 +34,18 @@ var (
 // This interface lets Scorecard look up package manager metadata for a project.
 type ProjectPackageClient interface {
 	GetProjectPackageVersions(ctx context.Context, host, project string) (*ProjectPackageVersions, error)
-	GetPackage(ctx context.Context, host, project, system string) (*PackageData, error)
-	GetPackageDependencies(ctx context.Context, host, project string) (*PackageDependencies, error)
+	GetPackage(ctx context.Context) (*PackageData, error)
+	GetPackageDependencies(ctx context.Context) (*PackageDependencies, error)
 	GetVersion(ctx context.Context, name, version, system string) (*VersionData, error)
 	GetURI(ctx context.Context, name, version, system string) (string, error)
+	GetPackageName() string
+	GetSystem() string
 }
 
 type depsDevClient struct {
-	client *http.Client
+	client      *http.Client
+	packageName string
+	system      string
 }
 
 type ProjectPackageVersions struct {
@@ -122,9 +126,18 @@ func CreateDepsDevClient() ProjectPackageClient {
 	}
 }
 
+func CreateDepsDevClientForPackage(packageName, system string) ProjectPackageClient {
+	return depsDevClient{
+		client:      &http.Client{},
+		packageName: packageName,
+		system:      system,
+	}
+}
+
 var (
 	ErrDepsDevAPI            = errors.New("deps.dev")
 	ErrProjNotFoundInDepsDev = errors.New("project not found in deps.dev")
+	ErrPkgNotFoundInDepsDev  = errors.New("package not found in deps.dev")
 )
 
 func (d depsDevClient) GetProjectPackageVersions(
@@ -167,20 +180,11 @@ func (d depsDevClient) GetProjectPackageVersions(
 }
 
 func (d depsDevClient) GetPackageDependencies(
-	ctx context.Context, host, project string,
-) (*PackageDependencies, error) {
-	packageName := fmt.Sprintf("%s/%s", host, project)
-
-	// GetProjectPackageVersions is used to get the system
-	versions, err := d.GetProjectPackageVersions(ctx, host, project)
-	if err != nil {
-		return nil, fmt.Errorf("deps.dev GetProjectPackageVersions: %w", err)
-	}
-	system := versions.Versions[0].VersionKey.System
+	ctx context.Context) (*PackageDependencies, error) {
 
 	// GetPackage used to get the default version. Requires the system to be specified so
 	// this call must be done after GetProjectPackageVersions
-	packageInfo, err := d.GetPackage(ctx, host, project, system)
+	packageInfo, err := d.GetPackage(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("deps.dev GetPackage: %w", err)
 	}
@@ -194,7 +198,7 @@ func (d depsDevClient) GetPackageDependencies(
 	}
 
 	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s/versions/%s:dependencies",
-		url.QueryEscape(system), url.QueryEscape(packageName), url.QueryEscape(defaultVersion))
+		url.QueryEscape(d.GetSystem()), url.QueryEscape(d.GetPackageName()), url.QueryEscape(defaultVersion))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
 	if err != nil {
@@ -209,7 +213,7 @@ func (d depsDevClient) GetPackageDependencies(
 	var res PackageDependencies
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, ErrProjNotFoundInDepsDev
+		return nil, ErrPkgNotFoundInDepsDev
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -229,11 +233,10 @@ func (d depsDevClient) GetPackageDependencies(
 }
 
 func (d depsDevClient) GetPackage(
-	ctx context.Context, host, project string, system string,
-) (*PackageData, error) {
-	packageName := fmt.Sprintf("%s/%s", host, project)
+	ctx context.Context) (*PackageData, error) {
+
 	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s",
-		url.QueryEscape(system), url.QueryEscape(packageName))
+		url.QueryEscape(d.GetSystem()), url.QueryEscape(d.GetPackageName()))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
 	if err != nil {
 		return nil, fmt.Errorf("http.NewRequestWithContext: %w", err)
@@ -246,7 +249,7 @@ func (d depsDevClient) GetPackage(
 
 	var res PackageData
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, ErrProjNotFoundInDepsDev
+		return nil, ErrPkgNotFoundInDepsDev
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -266,8 +269,8 @@ func (d depsDevClient) GetPackage(
 }
 
 func (d depsDevClient) GetVersion(
-	ctx context.Context, name, version, system string,
-) (*VersionData, error) {
+	ctx context.Context, name, version, system string) (*VersionData, error) {
+
 	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s/versions/%s", url.QueryEscape(system),
 		url.QueryEscape(name), url.QueryEscape(version))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
@@ -282,7 +285,7 @@ func (d depsDevClient) GetVersion(
 
 	var res VersionData
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, ErrProjNotFoundInDepsDev
+		return nil, ErrPkgNotFoundInDepsDev
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -320,4 +323,12 @@ func (d depsDevClient) GetURI(
 		return "", fmt.Errorf("deps.dev GetURI: %s", name)
 	}
 	return trimmedURL, nil
+}
+
+func (d depsDevClient) GetPackageName() string {
+	return d.packageName
+}
+
+func (d depsDevClient) GetSystem() string {
+	return d.system
 }

@@ -104,7 +104,7 @@ func TestBinaryArtifacts(t *testing.T) {
 	}
 }
 
-// currently only allows up to two dependencies.
+// currently only allows up to two dependencies. Each simulated dependency corresponds to a specified folder in inputFolders.
 func TestBinaryArtifactsDependencies(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -163,7 +163,7 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 				return nil
 			}).AnyTimes()
 
-			// mock RepoClient for second dependency (if it exists)
+			// mock RepoClient for second dependency in test (if it exists)
 			secondMockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			secondMockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
 				var files []string
@@ -187,8 +187,8 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 
 			// Mock package client
 			mockPkgC := mockrepo.NewMockProjectPackageClient(ctrl)
-			mockPkgC.EXPECT().GetPackageDependencies(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
-				func(ctx context.Context, host, project string) (*packageclient.PackageDependencies, error) {
+			mockPkgC.EXPECT().GetPackageDependencies(gomock.Any()).DoAndReturn(
+				func(ctx context.Context) (*packageclient.PackageDependencies, error) {
 					v := packageclient.PackageDependencies{}
 
 					// Add a simulated dependency for each item in inputFolders
@@ -241,9 +241,10 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 
 			dl := scut.TestDetailLogger{}
 
-			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard") // just to avoid null pointers. Actual value not critical
-			if err != nil {
-			}
+			repo, _ := githubrepo.MakeGithubRepo("ossf/scorecard") // just to avoid panic. Actual value not critical
+			// if err != nil {
+			// 	t.Fatalf(`githubrepo.MakeGithubRepo() failed, error`, err)
+			// }
 			req := checker.CheckRequest{
 				Ctx:              ctx,
 				Dlogger:          &dl,

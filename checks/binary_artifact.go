@@ -15,8 +15,6 @@
 package checks
 
 import (
-	"strings"
-
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/evaluation"
 	"github.com/ossf/scorecard/v5/checks/raw"
@@ -68,10 +66,10 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 
 // BinaryArtifactsDependencies will check all depdencies of repository contains binary artifacts.
 func BinaryArtifactsDependencies(c *checker.CheckRequest) checker.CheckResult {
-	uriComponents := strings.Split(c.Repo.URI(), "/")
-	host := uriComponents[0]
-	project := uriComponents[1] + "/" + uriComponents[2]
-	dependencies, err := c.ProjectClient.GetPackageDependencies(c.Ctx, host, project)
+	// uriComponents := strings.Split(c.Repo.URI(), "/")
+	// host := uriComponents[0]
+	// project := uriComponents[1] + "/" + uriComponents[2]
+	dependencies, err := c.ProjectClient.GetPackageDependencies(c.Ctx)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)

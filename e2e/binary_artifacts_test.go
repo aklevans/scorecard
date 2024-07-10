@@ -229,7 +229,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts+"-Dependencies", func()
 				RepoClient:       repoClient,
 				Repo:             repo,
 				Dlogger:          &dl,
-				ProjectClient:    packageclient.CreateDepsDevClient(),
+				ProjectClient:    packageclient.CreateDepsDevClientForPackage("github.com/ossf/scorecard", "GO"),
 				DependencyClient: dependencyclient.CreateDependencyClient(),
 			}
 			expected := scut.TestReturn{
@@ -257,7 +257,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts+"-Dependencies", func()
 				RepoClient:       repoClient,
 				Repo:             repo,
 				Dlogger:          &dl,
-				ProjectClient:    packageclient.CreateDepsDevClient(),
+				ProjectClient:    packageclient.CreateDepsDevClientForPackage("github.com/aklevans/scorecard-check-binary-artifacts-in-dependencies-e2e", "GO"),
 				DependencyClient: dependencyclient.CreateDependencyClient(),
 			}
 			// TODO: upload real binaries to the repo as well.
