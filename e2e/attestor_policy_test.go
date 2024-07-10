@@ -243,7 +243,7 @@ func getScorecardResult(repoURL string) (pkg.ScorecardResult, error) {
 		},
 	}
 	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
-		ctx, repoURL, "", logger)
+		ctx, repoURL, "", "", "", logger)
 	if err != nil {
 		return pkg.ScorecardResult{}, fmt.Errorf("couldn't set up clients: %w", err)
 	}

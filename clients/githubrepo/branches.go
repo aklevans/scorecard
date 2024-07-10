@@ -22,11 +22,10 @@ import (
 	"sync"
 
 	"github.com/google/go-github/v53/github"
-	"github.com/shurcooL/githubv4"
-
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/clients/githubrepo/internal/fnmatch"
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/shurcooL/githubv4"
 )
 
 const (

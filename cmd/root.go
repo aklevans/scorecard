@@ -94,7 +94,7 @@ func rootCmd(o *options.Options) error {
 	ctx := context.Background()
 	logger := sclog.NewLogger(sclog.ParseLevel(o.LogLevel))
 	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
-		ctx, o.Repo, o.Local, logger) // MODIFIED
+		ctx, o.Repo, o.Local, pkgResp.packageName, pkgResp.system, logger) // MODIFIED
 	if err != nil {
 		return fmt.Errorf("GetClients: %w", err)
 	}

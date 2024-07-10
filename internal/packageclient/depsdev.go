@@ -24,6 +24,11 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 var (
@@ -40,6 +45,8 @@ type ProjectPackageClient interface {
 	GetURI(ctx context.Context, name, version, system string) (string, error)
 	GetPackageName() string
 	GetSystem() string
+	CreateGitlabRepoClient(ctx context.Context, host string) (clients.RepoClient, error)
+	CreateGithubRepoClient(ctx context.Context, l *log.Logger) clients.RepoClient
 }
 
 type depsDevClient struct {
@@ -331,4 +338,13 @@ func (d depsDevClient) GetPackageName() string {
 
 func (d depsDevClient) GetSystem() string {
 	return d.system
+}
+
+func (d depsDevClient) CreateGithubRepoClient(ctx context.Context, l *log.Logger) clients.RepoClient {
+	return githubrepo.CreateGithubRepoClient(ctx, l)
+}
+
+func (d depsDevClient) CreateGitlabRepoClient(ctx context.Context, host string) (clients.RepoClient, error) {
+	ret, err := gitlabrepo.CreateGitlabClient(ctx, host)
+	return ret, err
 }

@@ -86,8 +86,8 @@ func BinaryArtifactsDependencies(c *checker.CheckRequest) checker.CheckResult {
 			continue // if cant find github url for dependency, skip for now
 		}
 
-		repoClient := c.DependencyClient.CreateGithubRepoClient(c.Ctx, logger)
-		repo, _, _, _, _, _, err := checker.GetClients(c.Ctx, depURI, "", logger) // change this?
+		repoClient := c.ProjectClient.CreateGithubRepoClient(c.Ctx, logger)
+		repo, _, _, _, _, _, err := checker.GetClients(c.Ctx, depURI, "", "", "", logger) // change this?
 		if err != nil {
 			e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 			return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)

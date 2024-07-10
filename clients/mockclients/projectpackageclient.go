@@ -9,7 +9,9 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	clients "github.com/ossf/scorecard/v5/clients"
 	packageclient "github.com/ossf/scorecard/v5/internal/packageclient"
+	log "github.com/ossf/scorecard/v5/log"
 )
 
 // MockProjectPackageClient is a mock of ProjectPackageClient interface.
@@ -33,6 +35,35 @@ func NewMockProjectPackageClient(ctrl *gomock.Controller) *MockProjectPackageCli
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockProjectPackageClient) EXPECT() *MockProjectPackageClientMockRecorder {
 	return m.recorder
+}
+
+// CreateGithubRepoClient mocks base method.
+func (m *MockProjectPackageClient) CreateGithubRepoClient(ctx context.Context, l *log.Logger) clients.RepoClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateGithubRepoClient", ctx, l)
+	ret0, _ := ret[0].(clients.RepoClient)
+	return ret0
+}
+
+// CreateGithubRepoClient indicates an expected call of CreateGithubRepoClient.
+func (mr *MockProjectPackageClientMockRecorder) CreateGithubRepoClient(ctx, l interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGithubRepoClient", reflect.TypeOf((*MockProjectPackageClient)(nil).CreateGithubRepoClient), ctx, l)
+}
+
+// CreateGitlabRepoClient mocks base method.
+func (m *MockProjectPackageClient) CreateGitlabRepoClient(ctx context.Context, host string) (clients.RepoClient, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateGitlabRepoClient", ctx, host)
+	ret0, _ := ret[0].(clients.RepoClient)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateGitlabRepoClient indicates an expected call of CreateGitlabRepoClient.
+func (mr *MockProjectPackageClientMockRecorder) CreateGitlabRepoClient(ctx, host interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGitlabRepoClient", reflect.TypeOf((*MockProjectPackageClient)(nil).CreateGitlabRepoClient), ctx, host)
 }
 
 // GetPackage mocks base method.

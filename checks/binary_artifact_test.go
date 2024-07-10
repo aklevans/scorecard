@@ -224,14 +224,13 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 				},
 			).AnyTimes()
 
-			mockDepC := mockrepo.NewMockDependencyClient(ctrl)
-			firstCreate := mockDepC.EXPECT().CreateGithubRepoClient(gomock.Any(), gomock.Any()).DoAndReturn(
+			firstCreate := mockPkgC.EXPECT().CreateGithubRepoClient(gomock.Any(), gomock.Any()).DoAndReturn(
 				func(ctx context.Context, l *log.Logger) clients.RepoClient {
 					return firstMockRepoClient
 				},
 			).MaxTimes(1)
 
-			mockDepC.EXPECT().CreateGithubRepoClient(gomock.Any(), gomock.Any()).DoAndReturn(
+			mockPkgC.EXPECT().CreateGithubRepoClient(gomock.Any(), gomock.Any()).DoAndReturn(
 				func(ctx context.Context, l *log.Logger) clients.RepoClient {
 					return secondMockRepoClient
 				},
@@ -246,11 +245,10 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 			// 	t.Fatalf(`githubrepo.MakeGithubRepo() failed, error`, err)
 			// }
 			req := checker.CheckRequest{
-				Ctx:              ctx,
-				Dlogger:          &dl,
-				DependencyClient: mockDepC,
-				ProjectClient:    mockPkgC,
-				Repo:             repo,
+				Ctx:           ctx,
+				Dlogger:       &dl,
+				ProjectClient: mockPkgC,
+				Repo:          repo,
 			}
 
 			result := BinaryArtifactsDependencies(&req)

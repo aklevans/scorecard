@@ -29,7 +29,7 @@ import (
 
 // GetClients returns a list of clients for running scorecard checks.
 // TODO(repo): Pass a `http.RoundTripper` here.
-func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logger) (
+func GetClients(ctx context.Context, repoURI, localURI, packageName, system string, logger *log.Logger) (
 	clients.Repo, // repo
 	clients.RepoClient, // repoClient
 	clients.RepoClient, // ossFuzzClient
@@ -82,6 +82,6 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 		ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL), /*ossFuzzClient*/
 		clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
 		clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
-		packageclient.CreateDepsDevClient(),
+		packageclient.CreateDepsDevClientForPackage(packageName, system),
 		nil
 }

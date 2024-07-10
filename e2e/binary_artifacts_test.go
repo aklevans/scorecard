@@ -25,7 +25,6 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients"
-	dependencyclient "github.com/ossf/scorecard/v5/clients/dependency"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/localdir"
 	"github.com/ossf/scorecard/v5/internal/packageclient"
@@ -225,12 +224,11 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts+"-Dependencies", func()
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
-				Ctx:              context.Background(),
-				RepoClient:       repoClient,
-				Repo:             repo,
-				Dlogger:          &dl,
-				ProjectClient:    packageclient.CreateDepsDevClientForPackage("github.com/ossf/scorecard", "GO"),
-				DependencyClient: dependencyclient.CreateDependencyClient(),
+				Ctx:           context.Background(),
+				RepoClient:    repoClient,
+				Repo:          repo,
+				Dlogger:       &dl,
+				ProjectClient: packageclient.CreateDepsDevClientForPackage("github.com/ossf/scorecard", "GO"),
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -253,12 +251,11 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts+"-Dependencies", func()
 			Expect(err).Should(BeNil())
 
 			req := checker.CheckRequest{
-				Ctx:              context.Background(),
-				RepoClient:       repoClient,
-				Repo:             repo,
-				Dlogger:          &dl,
-				ProjectClient:    packageclient.CreateDepsDevClientForPackage("github.com/aklevans/scorecard-check-binary-artifacts-in-dependencies-e2e", "GO"),
-				DependencyClient: dependencyclient.CreateDependencyClient(),
+				Ctx:           context.Background(),
+				RepoClient:    repoClient,
+				Repo:          repo,
+				Dlogger:       &dl,
+				ProjectClient: packageclient.CreateDepsDevClientForPackage("github.com/aklevans/scorecard-check-binary-artifacts-in-dependencies-e2e", "GO"),
 			}
 			// TODO: upload real binaries to the repo as well.
 			// There are 24 dummy binaries that are ignored because they only contain ASCII characters.

@@ -20,9 +20,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/xanzy/go-gitlab"
-
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/xanzy/go-gitlab"
 )
 
 type branchesHandler struct {

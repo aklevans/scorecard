@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"github.com/ossf/scorecard/v5/clients"
-	dependencyclient "github.com/ossf/scorecard/v5/clients/dependency"
 	"github.com/ossf/scorecard/v5/internal/packageclient"
 )
 
@@ -32,7 +31,6 @@ type CheckRequest struct {
 	Repo                  clients.Repo
 	VulnerabilitiesClient clients.VulnerabilitiesClient
 	ProjectClient         packageclient.ProjectPackageClient
-	DependencyClient      dependencyclient.DependencyClient
 	// UPGRADEv6: return raw results instead of scores.
 	RawResults    *RawResults
 	RequiredTypes []RequestType

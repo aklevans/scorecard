@@ -78,7 +78,7 @@ func RunCheckWithParams(repoURL, commitSHA, policyPath string) (policy.PolicyRes
 	}
 
 	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
-		ctx, repoURL, "", logger)
+		ctx, repoURL, "", "", "", logger)
 	if err != nil {
 		return policy.Fail, fmt.Errorf("couldn't set up clients: %w", err)
 	}

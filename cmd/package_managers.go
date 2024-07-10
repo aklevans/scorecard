@@ -32,6 +32,7 @@ var (
 	githubDomainRegexp    = regexp.MustCompile(`^https?://github[.]com/([^/]+)/([^/]+)`)
 	githubSubdomainRegexp = regexp.MustCompile(`^https?://([^.]+)[.]github[.]io/([^/]+).*`)
 	gitlabDomainRegexp    = regexp.MustCompile(`^https?://gitlab[.]com/([^/]+)/([^/]+)`)
+	npmSys                = "NPM"
 )
 
 func makeGithubRepo(urlAndPathParts []string) string {
@@ -68,6 +69,8 @@ var pypiMatchers = []func(string) string{
 
 type packageMangerResponse struct {
 	associatedRepo string
+	packageName    string
+	system         string
 	exists         bool
 }
 
@@ -79,6 +82,8 @@ func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,
+			packageName:    npm,
+			system:         npmSys,
 		}, err
 	}
 	if pypi != "" {
@@ -86,6 +91,7 @@ func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,
+			packageName:    pypi,
 		}, err
 	}
 	if rubygems != "" {
@@ -93,6 +99,7 @@ func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,
+			packageName:    rubygems,
 		}, err
 	}
 	if nuget != "" {
@@ -101,6 +108,7 @@ func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,
+			packageName:    nuget,
 		}, err
 	}
 
