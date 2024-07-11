@@ -193,7 +193,7 @@ func (d depsDevClient) GetPackageDependencies(
 	// this call must be done after GetProjectPackageVersions
 	packageInfo, err := d.GetPackage(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("deps.dev GetPackage: %w", err)
+		return nil, fmt.Errorf("deps.dev f GetPackage: %w", err)
 	}
 
 	defaultVersion := packageInfo.Versions[0].VersionKey.Version
@@ -256,6 +256,7 @@ func (d depsDevClient) GetPackage(
 
 	var res PackageData
 	if resp.StatusCode == http.StatusNotFound {
+		fmt.Print(d.GetPackageName())
 		return nil, ErrPkgNotFoundInDepsDev
 	}
 
@@ -340,10 +341,12 @@ func (d depsDevClient) GetSystem() string {
 	return d.system
 }
 
+// used to create repo client for dependencies to allow for mocking during testing
 func (d depsDevClient) CreateGithubRepoClient(ctx context.Context, l *log.Logger) clients.RepoClient {
 	return githubrepo.CreateGithubRepoClient(ctx, l)
 }
 
+// used to create repo client for dependencies to allow for mocking during testing
 func (d depsDevClient) CreateGitlabRepoClient(ctx context.Context, host string) (clients.RepoClient, error) {
 	ret, err := gitlabrepo.CreateGitlabClient(ctx, host)
 	return ret, err

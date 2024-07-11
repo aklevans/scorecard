@@ -27,6 +27,7 @@ import (
 
 // CheckBinaryArtifacts is the exported name for Binary-Artifacts check.
 const CheckBinaryArtifacts string = "Binary-Artifacts"
+const selfLabel = "SELF"
 
 //nolint:gochecknoinits
 func init() {
@@ -42,6 +43,8 @@ func init() {
 
 // BinaryArtifacts  will check the repository contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
+	//return BinaryArtifactsDependencies(c)
+
 	rawData, err := raw.BinaryArtifacts(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
@@ -66,9 +69,15 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 
 // BinaryArtifactsDependencies will check all depdencies of repository contains binary artifacts.
 func BinaryArtifactsDependencies(c *checker.CheckRequest) checker.CheckResult {
-	// uriComponents := strings.Split(c.Repo.URI(), "/")
-	// host := uriComponents[0]
-	// project := uriComponents[1] + "/" + uriComponents[2]
+
+	//c.ProjectClient = packageclient.CreateDepsDevClientForPackage("github.com/aklevans/scorecard-check-binary-artifacts-in-dependencies-e2e", "GO")
+	if c.ProjectClient.GetPackageName() == "" || c.ProjectClient.GetSystem() == "" {
+		// if package name wasn't given on the command line, try to find it using the repo url
+
+		//c.ProjectClient.GetProjectPackageVersions()
+
+		return checker.CreateInconclusiveResult(CheckBinaryArtifacts, "Couldn't find package name")
+	}
 	dependencies, err := c.ProjectClient.GetPackageDependencies(c.Ctx)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
@@ -80,6 +89,9 @@ func BinaryArtifactsDependencies(c *checker.CheckRequest) checker.CheckResult {
 
 	// todo: self is currently included in dependency list. Exclude?
 	for _, dep := range dependencies.Nodes {
+		if dep.Relation == selfLabel {
+			continue
+		}
 		depURI, err := c.ProjectClient.GetURI(c.Ctx, dep.VersionKey.Name, dep.VersionKey.Version, dep.VersionKey.System)
 		if err != nil {
 			numSkipped += 1

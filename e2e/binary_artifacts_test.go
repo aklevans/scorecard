@@ -213,6 +213,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 	})
 })
 
+// uses repository "aklevans/scorecard-check-binary-artifacts-in-dependencies-e2e" which should be moved to ossf-tests
 var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts+"-Dependencies", func() {
 	Context("E2E TEST:Binary artifacts are not present in source code", func() {
 		It("Should return not binary artifacts in source code", func() {
