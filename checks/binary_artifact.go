@@ -15,11 +15,14 @@
 package checks
 
 import (
+	"strings"
+
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/evaluation"
 	"github.com/ossf/scorecard/v5/checks/raw"
 	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 	sclog "github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/probes"
 	"github.com/ossf/scorecard/v5/probes/zrunner"
@@ -27,7 +30,7 @@ import (
 
 // CheckBinaryArtifacts is the exported name for Binary-Artifacts check.
 const CheckBinaryArtifacts string = "Binary-Artifacts"
-const selfLabel = "SELF"
+const selfLabel string = "SELF"
 
 //nolint:gochecknoinits
 func init() {
@@ -43,7 +46,6 @@ func init() {
 
 // BinaryArtifacts  will check the repository contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-	//return BinaryArtifactsDependencies(c)
 
 	rawData, err := raw.BinaryArtifacts(c)
 	if err != nil {
@@ -64,50 +66,63 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 
 	ret := evaluation.BinaryArtifacts(CheckBinaryArtifacts, findings, c.Dlogger)
 	ret.Findings = findings
+
+	BinaryArtifactsDependencies(c)
+
 	return ret
 }
 
-// BinaryArtifactsDependencies will check all depdencies of repository contains binary artifacts.
-func BinaryArtifactsDependencies(c *checker.CheckRequest) checker.CheckResult {
+// BinaryArtifactsDependencies will check all depdencies of repository contains binary artifacts and log all that are found.
+func BinaryArtifactsDependencies(c *checker.CheckRequest) bool {
 
-	//c.ProjectClient = packageclient.CreateDepsDevClientForPackage("github.com/aklevans/scorecard-check-binary-artifacts-in-dependencies-e2e", "GO")
+	// if package name wasn't given on the command line, try to find it using the repo url
 	if c.ProjectClient.GetPackageName() == "" || c.ProjectClient.GetSystem() == "" {
-		// if package name wasn't given on the command line, try to find it using the repo url
 
-		//c.ProjectClient.GetProjectPackageVersions()
+		// Gets system
+		uriComponents := strings.Split(c.RepoClient.URI(), "/")
+		host := uriComponents[0]
+		project := uriComponents[1] + "/" + uriComponents[2]
+		versions, err := c.ProjectClient.GetProjectPackageVersions(c.Ctx, host, project)
+		if err != nil {
+			return false
+		}
+		system := versions.Versions[0].VersionKey.System
 
-		return checker.CreateInconclusiveResult(CheckBinaryArtifacts, "Couldn't find package name")
+		// Repos are often mapped to by multiple package names
+		// Therefore, only include packages that have the same name as the repo url (ex. most GO packages)
+		// Doing this instead of VersionKey.Name gets rid of most false
+		// positive matches but will cause some false negatives
+
+		c.ProjectClient = packageclient.CreateDepsDevClientForPackage(c.RepoClient.URI(), system)
 	}
+
 	dependencies, err := c.ProjectClient.GetPackageDependencies(c.Ctx)
 	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
+		return false
 	}
-	rawData := checker.BinaryArtifactData{}
 	logger := sclog.NewLogger(sclog.DefaultLevel)
 	numSkipped := 0 // do something with this eventually?
 
-	// todo: self is currently included in dependency list. Exclude?
 	for _, dep := range dependencies.Nodes {
 		if dep.Relation == selfLabel {
 			continue
 		}
 		depURI, err := c.ProjectClient.GetURI(c.Ctx, dep.VersionKey.Name, dep.VersionKey.Version, dep.VersionKey.System)
 		if err != nil {
-			numSkipped += 1
-			continue // if cant find github url for dependency, skip for now
+			numSkipped++
+			continue
 		}
 
 		repoClient := c.ProjectClient.CreateGithubRepoClient(c.Ctx, logger)
 		repo, _, _, _, _, _, err := checker.GetClients(c.Ctx, depURI, "", "", "", logger) // change this?
 		if err != nil {
-			e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-			return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
+			numSkipped++
+			continue
 		}
 		err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 		if err != nil {
-			e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-			return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
+			numSkipped++
+			continue
 		}
 		dc := checker.CheckRequest{
 			Ctx:        c.Ctx,
@@ -118,25 +133,23 @@ func BinaryArtifactsDependencies(c *checker.CheckRequest) checker.CheckResult {
 
 		depRawData, err := raw.BinaryArtifacts(&dc)
 		if err != nil {
-			e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-			return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
+			continue
 		}
 
-		rawData.Files = append(rawData.Files, depRawData.Files...)
+		// Set the raw results.
+		dRawResults := getRawResults(c)
+		dRawResults.BinaryArtifactResults = depRawData
+
+		// Evaluate the probes.
+		findings, err := zrunner.Run(dRawResults, probes.BinaryArtifacts)
+		if err != nil {
+			continue
+		}
+
+		// log
+		evaluation.BinaryArtifactsDependencies(CheckBinaryArtifacts, dep.VersionKey.Name, findings, dc.Dlogger)
 	}
 
-	// Set the raw results.
-	pRawResults := getRawResults(c)
-	pRawResults.BinaryArtifactResults = rawData
+	return true
 
-	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.BinaryArtifacts)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
-	}
-
-	ret := evaluation.BinaryArtifacts(CheckBinaryArtifacts, findings, c.Dlogger)
-	ret.Findings = findings
-	return ret
 }

@@ -42,12 +42,13 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
-
+			projectClient := packageclient.CreateDepsDevClientForPackage(repoClient.URI(), "GO")
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:           context.Background(),
+				RepoClient:    repoClient,
+				Repo:          repo,
+				Dlogger:       &dl,
+				ProjectClient: projectClient,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -68,12 +69,14 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
+			projectClient := packageclient.CreateDepsDevClientForPackage(repoClient.URI(), "GO")
 
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:           context.Background(),
+				RepoClient:    repoClient,
+				Repo:          repo,
+				Dlogger:       &dl,
+				ProjectClient: projectClient,
 			}
 			// TODO: upload real binaries to the repo as well.
 			// There are 24 dummy binaries that are ignored because they only contain ASCII characters.
@@ -95,12 +98,14 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, "5b48dea88825662d67ed94b609b45cf7705333b6", 0)
 			Expect(err).Should(BeNil())
+			projectClient := packageclient.CreateDepsDevClientForPackage(repoClient.URI(), "GO")
 
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:           context.Background(),
+				RepoClient:    repoClient,
+				Repo:          repo,
+				Dlogger:       &dl,
+				ProjectClient: projectClient,
 			}
 			// TODO: upload real binaries to the repo as well.
 			// There are 24 dummy binaries that are ignored because they only contain ASCII characters.
@@ -122,12 +127,14 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
+			projectClient := packageclient.CreateDepsDevClientForPackage(repoClient.URI(), "GO")
 
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:           context.Background(),
+				RepoClient:    repoClient,
+				Repo:          repo,
+				Dlogger:       &dl,
+				ProjectClient: projectClient,
 			}
 			// TODO: upload real binaries to the repo as well.
 			// Existing binaries only contain ASCII characters and are ignored.
@@ -150,12 +157,14 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, "d994b3e1a8912283f9958a7c1e0aa480ca24a7ce", 0)
 			Expect(err).Should(BeNil())
+			projectClient := packageclient.CreateDepsDevClientForPackage(repoClient.URI(), "GO")
 
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:           context.Background(),
+				RepoClient:    repoClient,
+				Repo:          repo,
+				Dlogger:       &dl,
+				ProjectClient: projectClient,
 			}
 			// TODO: upload real binaries to the repo.
 			// Existing binaries only contain ASCII characters and are ignored.
@@ -190,11 +199,14 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			err = x.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
+			projectClient := packageclient.CreateDepsDevClientForPackage(x.URI(), "GO")
+
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: x,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:           context.Background(),
+				RepoClient:    x,
+				Repo:          repo,
+				Dlogger:       &dl,
+				ProjectClient: projectClient,
 			}
 			// TODO: upload real binaries to the repo.
 			// Existing binaries only contain SCII characters and are ignored.
@@ -239,7 +251,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts+"-Dependencies", func()
 				NumberOfDebug: 0,
 			}
 
-			result := checks.BinaryArtifactsDependencies(&req)
+			result := checks.BinaryArtifacts(&req)
 			scut.ValidateTestReturn(GinkgoTB(), "no binary artifacts", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
@@ -258,16 +270,15 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts+"-Dependencies", func()
 				Dlogger:       &dl,
 				ProjectClient: packageclient.CreateDepsDevClientForPackage("github.com/aklevans/scorecard-check-binary-artifacts-in-dependencies-e2e", "GO"),
 			}
-			// TODO: upload real binaries to the repo as well.
-			// There are 24 dummy binaries that are ignored because they only contain ASCII characters.
+
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 1,
-				NumberOfWarn:  1,
+				NumberOfWarn:  2,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
-			result := checks.BinaryArtifactsDependencies(&req)
+			result := checks.BinaryArtifacts(&req)
 			scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})

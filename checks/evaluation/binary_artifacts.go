@@ -65,46 +65,46 @@ func BinaryArtifacts(name string,
 	return checker.CreateResultWithScore(name, "binaries present in source code", score)
 }
 
-//BinaryArtifacts applies the score policy for the Binary-Artifacts dependencies check.
-// func BinaryArtifactsDependencies(name string,
-// 	findings []finding.Finding,
-// 	dl checker.DetailLogger,
-// ) checker.CheckResult {
-// 	expectedProbes := []string{
-// 		hasUnverifiedBinaryArtifacts.Probe,
-// 	}
+// BinaryArtifacts applies the score policy for the Binary-Artifacts dependencies check.
+func BinaryArtifactsDependencies(name, packageName string,
+	findings []finding.Finding,
+	dl checker.DetailLogger,
+) checker.CheckResult {
+	expectedProbes := []string{
+		hasUnverifiedBinaryArtifacts.Probe,
+	}
 
-// 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
-// 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
-// 		return checker.CreateRuntimeErrorResult(name, e)
-// 	}
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
+		return checker.CreateRuntimeErrorResult(name, e)
+	}
 
-// 	if findings[0].Outcome == finding.OutcomeFalse {
-// 		return checker.CreateMaxScoreResult(name, "no binaries found in dependencies")
-// 	}
+	if findings[0].Outcome == finding.OutcomeFalse {
+		return checker.CreateMaxScoreResult(name, "no binaries found in dependencies")
+	}
 
-// 	for i := range findings {
-// 		f := &findings[i]
-// 		if f.Outcome != finding.OutcomeTrue {
-// 			continue
-// 		}
-// 		dl.Warn(&checker.LogMessage{
-// 			Path:   f.Location.Path,
-// 			Type:   f.Location.Type,
-// 			Offset: *f.Location.LineStart,
-// 			Text:   "binary detected in " + ,
-// 		})
-// 	}
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome != finding.OutcomeTrue {
+			continue
+		}
+		dl.Warn(&checker.LogMessage{
+			Path:   f.Location.Path,
+			Type:   f.Location.Type,
+			Offset: *f.Location.LineStart,
+			Text:   "binary detected in dependency " + packageName,
+		})
+	}
 
-// 	// There are only false findings.
-// 	// Deduct the number of findings from max score
-// 	numberOfBinaryFilesFound := len(findings)
+	// There are only false findings.
+	// Deduct the number of findings from max score
+	numberOfBinaryFilesFound := len(findings)
 
-// 	score := checker.MaxResultScore - numberOfBinaryFilesFound
+	score := checker.MaxResultScore - numberOfBinaryFilesFound
 
-// 	if score < checker.MinResultScore {
-// 		score = checker.MinResultScore
-// 	}
+	if score < checker.MinResultScore {
+		score = checker.MinResultScore
+	}
 
-// 	return checker.CreateResultWithScore(name, "binaries present in source code", score)
-// }
+	return checker.CreateResultWithScore(name, "binaries present in source code", score)
+}

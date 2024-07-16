@@ -16,7 +16,9 @@ package checks
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"log"
 	"os"
 	"testing"
 
@@ -27,7 +29,6 @@ import (
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/internal/packageclient"
-	"github.com/ossf/scorecard/v5/log"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -85,14 +86,28 @@ func TestBinaryArtifacts(t *testing.T) {
 				return os.Open("./" + tt.inputFolder + "/" + file)
 			}).AnyTimes()
 
+			mockProjectClient := mockrepo.NewMockProjectPackageClient(ctrl)
+			mockProjectClient.EXPECT().GetPackageName().DoAndReturn(func() string {
+				return "fake-name"
+			}).AnyTimes()
+
+			mockProjectClient.EXPECT().GetSystem().DoAndReturn(func() string {
+				return "fake-url"
+			}).AnyTimes()
+
+			mockProjectClient.EXPECT().GetPackageDependencies(gomock.Any()).DoAndReturn(func(ctx context.Context) (*packageclient.PackageDependencies, error) {
+				return nil, fmt.Errorf("Error")
+			}).AnyTimes()
+
 			ctx := context.Background()
 
 			dl := scut.TestDetailLogger{}
 
 			req := checker.CheckRequest{
-				Ctx:        ctx,
-				RepoClient: mockRepoClient,
-				Dlogger:    &dl,
+				Ctx:           ctx,
+				RepoClient:    mockRepoClient,
+				Dlogger:       &dl,
+				ProjectClient: mockProjectClient,
 			}
 
 			result := BinaryArtifacts(&req)
@@ -104,7 +119,7 @@ func TestBinaryArtifacts(t *testing.T) {
 	}
 }
 
-// currently only allows up to two dependencies. Each simulated dependency corresponds to a specified folder in inputFolders.
+// currently only tests up to two dependencies. Each simulated dependency corresponds to a specified folder in inputFolders.
 func TestBinaryArtifactsDependencies(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -251,10 +266,10 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 				Repo:          repo,
 			}
 
-			result := BinaryArtifactsDependencies(&req)
+			result := BinaryArtifacts(&req)
 
 			scut.ValidateTestReturn(t, tt.name, &tt.expected, &result, &dl)
-
+			req.Dlogger.Flush()
 			ctrl.Finish()
 		})
 	}
