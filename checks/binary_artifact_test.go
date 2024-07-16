@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"testing"
 
@@ -29,6 +28,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/internal/packageclient"
+	sclog "github.com/ossf/scorecard/v5/log"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -120,7 +120,7 @@ func TestBinaryArtifacts(t *testing.T) {
 }
 
 // currently only tests up to two dependencies. Each simulated dependency corresponds to a specified folder in inputFolders.
-func TestBinaryArtifactsDependencies(t *testing.T) {
+func TestBinaryArtifactsWithDependencies(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name         string
@@ -133,7 +133,7 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 			inputFolders: []string{"testdata/binaryartifacts/jars", "testdata/licensedir/withlicense"},
 			err:          nil,
 			expected: scut.TestReturn{
-				Score:        8,
+				Score:        checker.MaxResultScore,
 				NumberOfInfo: 0,
 				NumberOfWarn: 2,
 			},
@@ -233,6 +233,19 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 					return &v, nil
 				},
 			).AnyTimes()
+
+			mockPkgC.EXPECT().GetPackageName().DoAndReturn(
+				func() string {
+					return "name"
+				},
+			).AnyTimes()
+
+			mockPkgC.EXPECT().GetSystem().DoAndReturn(
+				func() string {
+					return "system"
+				},
+			).AnyTimes()
+
 			mockPkgC.EXPECT().GetURI(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
 				func(context.Context, string, string, string) (string, error) {
 					return "github.com/ossf/scorecard", nil
@@ -240,16 +253,30 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 			).AnyTimes()
 
 			firstCreate := mockPkgC.EXPECT().CreateGithubRepoClient(gomock.Any(), gomock.Any()).DoAndReturn(
-				func(ctx context.Context, l *log.Logger) clients.RepoClient {
+				func(ctx context.Context, l *sclog.Logger) clients.RepoClient {
 					return firstMockRepoClient
 				},
 			).MaxTimes(1)
 
 			mockPkgC.EXPECT().CreateGithubRepoClient(gomock.Any(), gomock.Any()).DoAndReturn(
-				func(ctx context.Context, l *log.Logger) clients.RepoClient {
+				func(ctx context.Context, l *sclog.Logger) clients.RepoClient {
 					return secondMockRepoClient
 				},
 			).MaxTimes(1).After(firstCreate)
+
+			parentMockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+
+			parentMockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
+				var files []string
+				// dirFiles, err := os.ReadDir(tt.inputFolder)
+				// if err == nil {
+				// 	for _, file := range dirFiles {
+				// 		files = append(files, file.Name())
+				// 	}
+				// 	print(files)
+				// }
+				return files, nil
+			}).AnyTimes()
 
 			ctx := context.Background()
 
@@ -264,6 +291,7 @@ func TestBinaryArtifactsDependencies(t *testing.T) {
 				Dlogger:       &dl,
 				ProjectClient: mockPkgC,
 				Repo:          repo,
+				RepoClient:    parentMockRepoClient,
 			}
 
 			result := BinaryArtifacts(&req)

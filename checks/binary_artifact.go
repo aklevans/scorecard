@@ -88,16 +88,25 @@ func BinaryArtifactsDependencies(c *checker.CheckRequest) bool {
 		}
 		system := versions.Versions[0].VersionKey.System
 
-		// Repos are often mapped to by multiple package names
-		// Therefore, only include packages that have the same name as the repo url (ex. most GO packages)
-		// Doing this instead of VersionKey.Name gets rid of most false
-		// positive matches but will cause some false negatives
+		// Get package name from version.Versions only if there is only one package in the project.
+		// If there are multiple packages in a project, it is difficult to tell which to select.
+		// In this scenario, try to use repo url as the package name. (eg. most GO packages)
+		// GetPackageDependencies() will then return an err if package with repo url as name does not exist
 
-		c.ProjectClient = packageclient.CreateDepsDevClientForPackage(c.RepoClient.URI(), system)
+		// deps.dev api limits # of versions returned to 1500. Therefore, just because the repo url
+		// doesn't exist as a package name in versions.Versions, one cannot assume that a package whose
+		// name is the repo url does not exist.
+		packageName := c.RepoClient.URI()
+
+		if len(versions.Versions) == 1 {
+			packageName = versions.Versions[0].VersionKey.Name
+		}
+
+		c.ProjectClient = packageclient.CreateDepsDevClientForPackage(packageName, system)
 	}
 
 	dependencies, err := c.ProjectClient.GetPackageDependencies(c.Ctx)
-	if err != nil {
+	if err != nil { // package name does not exist in deps.dev
 		return false
 	}
 	logger := sclog.NewLogger(sclog.DefaultLevel)
