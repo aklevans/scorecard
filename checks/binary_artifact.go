@@ -29,8 +29,10 @@ import (
 )
 
 // CheckBinaryArtifacts is the exported name for Binary-Artifacts check.
-const CheckBinaryArtifacts string = "Binary-Artifacts"
-const selfLabel string = "SELF"
+const (
+	CheckBinaryArtifacts string = "Binary-Artifacts"
+	selfLabel            string = "SELF"
+)
 
 //nolint:gochecknoinits
 func init() {
@@ -46,7 +48,6 @@ func init() {
 
 // BinaryArtifacts  will check the repository contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
-
 	rawData, err := raw.BinaryArtifacts(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
@@ -72,12 +73,11 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	return ret
 }
 
-// BinaryArtifactsDependencies will check all depdencies of repository contains binary artifacts and log all that are found.
+// BinaryArtifactsDependencies will check all depdencies of repository contains binary artifacts
+// and log all that are found.
 func BinaryArtifactsDependencies(c *checker.CheckRequest) bool {
-
 	// if package name wasn't given on the command line, try to find it using the repo url
 	if c.ProjectClient.GetPackageName() == "" || c.ProjectClient.GetSystem() == "" {
-
 		// Gets system
 		uriComponents := strings.Split(c.RepoClient.URI(), "/")
 		host := uriComponents[0]
@@ -160,5 +160,4 @@ func BinaryArtifactsDependencies(c *checker.CheckRequest) bool {
 	}
 
 	return true
-
 }

@@ -209,14 +209,14 @@ func TestBinaryArtifactsWithDependencies(t *testing.T) {
 					// Add a simulated dependency for each item in inputFolders
 					for range tt.inputFolders {
 						v.Nodes = append(v.Nodes, struct {
+							Relation   string "json:\"relation\""
 							VersionKey struct {
 								System  string "json:\"system\""
 								Name    string "json:\"name\""
 								Version string "json:\"version\""
-							}
-							Bundled  bool     "json:\"bundled\""
-							Relation string   "json:\"relation\""
-							Errors   []string "json:\"errors\""
+							} "json:\"versionKey\""
+							Errors  []string "json:\"errors\""
+							Bundled bool     "json:\"bundled\""
 						}{
 							VersionKey: struct {
 								System  string "json:\"system\""
@@ -268,13 +268,6 @@ func TestBinaryArtifactsWithDependencies(t *testing.T) {
 
 			parentMockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
 				var files []string
-				// dirFiles, err := os.ReadDir(tt.inputFolder)
-				// if err == nil {
-				// 	for _, file := range dirFiles {
-				// 		files = append(files, file.Name())
-				// 	}
-				// 	print(files)
-				// }
 				return files, nil
 			}).AnyTimes()
 
@@ -282,10 +275,10 @@ func TestBinaryArtifactsWithDependencies(t *testing.T) {
 
 			dl := scut.TestDetailLogger{}
 
-			repo, _ := githubrepo.MakeGithubRepo("ossf/scorecard") // just to avoid panic. Actual value not critical
-			// if err != nil {
-			// 	t.Fatalf(`githubrepo.MakeGithubRepo() failed, error`, err)
-			// }
+			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard") // just to avoid panic. Actual value not critical
+			if err != nil {
+				t.Fatal(`githubrepo.MakeGithubRepo() failed, error`, err)
+			}
 			req := checker.CheckRequest{
 				Ctx:           ctx,
 				Dlogger:       &dl,

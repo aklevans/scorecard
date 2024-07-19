@@ -32,8 +32,9 @@ import (
 )
 
 var (
-	sourceRepoLabel = "SOURCE_REPO"
-	githubDomain    = regexp.MustCompile("github.com/.*")
+	sourceRepoLabel       = "SOURCE_REPO"
+	githubDomain          = regexp.MustCompile("github.com/.*")
+	errSourceRepoNotFound = errors.New("souce repo url not found")
 )
 
 // This interface lets Scorecard look up package manager metadata for a project.
@@ -92,22 +93,22 @@ type PackageData struct {
 }
 
 type PackageDependencies struct {
+	Error string `json:"error"`
 	Nodes []struct {
+		Relation   string `json:"relation"`
 		VersionKey struct {
 			System  string `json:"system"`
 			Name    string `json:"name"`
 			Version string `json:"version"`
-		}
-		Bundled  bool     `json:"bundled"`
-		Relation string   `json:"relation"`
-		Errors   []string `json:"errors"`
+		} `json:"versionKey"`
+		Errors  []string `json:"errors"`
+		Bundled bool     `json:"bundled"`
 	} `json:"nodes"`
 	Edges []struct {
+		Requirement string `json:"requirement"`
 		FromNode    int    `json:"fromNode"`
 		ToNode      int    `json:"toNode"`
-		Requirement string `json:"requirement"`
 	} `json:"edges"`
-	Error string `json:"error"`
 }
 
 type VersionData struct {
@@ -118,13 +119,13 @@ type VersionData struct {
 	} `json:"versionKey"`
 	Purl         string   `json:"purl"`
 	PublishedAt  string   `json:"publishedAt"`
-	IsDefault    bool     `json:"isDefault"`
 	Licenses     []string `json:"licenses"`
 	AdvisoryKeys []any    `json:"advisoryKeys"`
 	Links        []struct {
 		Label string `json:"label"`
 		URL   string `json:"url"`
 	} `json:"links"`
+	IsDefault bool `json:"isDefault"`
 }
 
 func CreateDepsDevClient() ProjectPackageClient {
@@ -187,8 +188,8 @@ func (d depsDevClient) GetProjectPackageVersions(
 }
 
 func (d depsDevClient) GetPackageDependencies(
-	ctx context.Context) (*PackageDependencies, error) {
-
+	ctx context.Context,
+) (*PackageDependencies, error) {
 	// GetPackage used to get the default version. Requires the system to be specified so
 	// this call must be done after GetProjectPackageVersions
 	packageInfo, err := d.GetPackage(ctx)
@@ -240,8 +241,8 @@ func (d depsDevClient) GetPackageDependencies(
 }
 
 func (d depsDevClient) GetPackage(
-	ctx context.Context) (*PackageData, error) {
-
+	ctx context.Context,
+) (*PackageData, error) {
 	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s",
 		url.QueryEscape(d.GetSystem()), url.QueryEscape(d.GetPackageName()))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
@@ -256,7 +257,6 @@ func (d depsDevClient) GetPackage(
 
 	var res PackageData
 	if resp.StatusCode == http.StatusNotFound {
-		fmt.Print(d.GetPackageName())
 		return nil, ErrPkgNotFoundInDepsDev
 	}
 
@@ -277,8 +277,8 @@ func (d depsDevClient) GetPackage(
 }
 
 func (d depsDevClient) GetVersion(
-	ctx context.Context, name, version, system string) (*VersionData, error) {
-
+	ctx context.Context, name, version, system string,
+) (*VersionData, error) {
 	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s/versions/%s", url.QueryEscape(system),
 		url.QueryEscape(name), url.QueryEscape(version))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
@@ -317,7 +317,7 @@ func (d depsDevClient) GetURI(
 ) (string, error) {
 	versionInfo, err := d.GetVersion(ctx, name, version, system)
 	if err != nil {
-		return "", fmt.Errorf("deps.dev GetVersion: %s", name)
+		return "", fmt.Errorf("deps.dev GetVersion: %w", err)
 	}
 	trimmedURL := ""
 	for _, ver := range versionInfo.Links {
@@ -328,7 +328,7 @@ func (d depsDevClient) GetURI(
 		}
 	}
 	if trimmedURL == "" {
-		return "", fmt.Errorf("deps.dev GetURI: %s", name)
+		return "", errSourceRepoNotFound
 	}
 	return trimmedURL, nil
 }
@@ -341,13 +341,13 @@ func (d depsDevClient) GetSystem() string {
 	return d.system
 }
 
-// used to create repo client for dependencies to allow for mocking during testing
+// used to create repo client for dependencies to allow for mocking during testing.
 func (d depsDevClient) CreateGithubRepoClient(ctx context.Context, l *log.Logger) clients.RepoClient {
 	return githubrepo.CreateGithubRepoClient(ctx, l)
 }
 
-// used to create repo client for dependencies to allow for mocking during testing
+// used to create repo client for dependencies to allow for mocking during testing.
 func (d depsDevClient) CreateGitlabRepoClient(ctx context.Context, host string) (clients.RepoClient, error) {
 	ret, err := gitlabrepo.CreateGitlabClient(ctx, host)
-	return ret, err
+	return ret, fmt.Errorf("deps.dev CreateGitlabRepoClient: %w", err)
 }
