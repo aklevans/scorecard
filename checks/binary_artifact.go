@@ -124,6 +124,7 @@ func BinaryArtifactsDependencies(c *checker.CheckRequest) bool {
 
 		repoClient := c.ProjectClient.CreateGithubRepoClient(c.Ctx, logger)
 		repo, _, _, _, _, _, err := checker.GetClients(c.Ctx, depURI, "", "", "", logger) // change this?
+
 		if err != nil {
 			numSkipped++
 			continue

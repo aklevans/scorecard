@@ -282,5 +282,33 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts+"-Dependencies", func()
 			scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
+
+		It("Should return binary artifacts present in dependency's source code when not given system or project name", func() {
+			dl := scut.TestDetailLogger{}
+			repo, err := githubrepo.MakeGithubRepo("aklevans/scorecard-check-binary-artifacts-in-dependencies-e2e")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+
+			req := checker.CheckRequest{
+				Ctx:           context.Background(),
+				RepoClient:    repoClient,
+				Repo:          repo,
+				Dlogger:       &dl,
+				ProjectClient: packageclient.CreateDepsDevClient(),
+			}
+
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore - 1,
+				NumberOfWarn:  2,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			}
+			result := checks.BinaryArtifacts(&req)
+			scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
+			Expect(repoClient.Close()).Should(BeNil())
+		})
 	})
 })

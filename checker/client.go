@@ -71,7 +71,7 @@ func GetClients(ctx context.Context, repoURI, localURI, packageName, system stri
 				nil,
 				nil,
 				nil,
-				packageclient.CreateDepsDevClient(),
+				nil,
 				fmt.Errorf("error making github repo: %w", makeRepoError)
 		}
 		repoClient = ghrepo.CreateGithubRepoClient(ctx, logger)
