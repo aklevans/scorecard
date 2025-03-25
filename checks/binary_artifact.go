@@ -76,6 +76,7 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 // BinaryArtifactsDependencies will check all depdencies of repository contains binary artifacts
 // and log all that are found.
 func BinaryArtifactsDependencies(c *checker.CheckRequest) bool {
+	
 	// if package name wasn't given on the command line, try to find it using the repo url
 	if c.ProjectClient.GetPackageName() == "" || c.ProjectClient.GetSystem() == "" {
 		// Gets system
