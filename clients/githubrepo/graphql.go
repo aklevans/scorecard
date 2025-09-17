@@ -206,6 +206,8 @@ func (handler *graphqlHandler) setup() error {
 			"historyCursor":          (*githubv4.String)(nil),
 		}
 		handler.commits, handler.errSetup = populateCommits(handler, vars)
+
+		//heres where we would add get contributors... from a given commit
 		handler.issues = issuesFrom(handler.data)
 		handler.archived = bool(handler.data.Repository.IsArchived)
 	})

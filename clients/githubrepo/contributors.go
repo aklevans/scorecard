@@ -44,12 +44,18 @@ func (handler *contributorsHandler) init(ctx context.Context, repourl *Repo) {
 
 func (handler *contributorsHandler) setup() error {
 	handler.once.Do(func() {
+		var contribs []*github.Contributor
+		var err error
+
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-			handler.errSetup = fmt.Errorf("%w: ListContributors only supported for HEAD queries", clients.ErrUnsupportedFeature)
-			return
+			// gets contributors from graphQL for a given commit date
+			contribs, _, err = handler.ghClient.Repositories.ListContributorsGraphQL(
+				handler.ctx, handler.repourl.owner, handler.repourl.repo, handler.repourl.commitSHA, &github.ListContributorsOptions{})
+		} else {
+			contribs, _, err = handler.ghClient.Repositories.ListContributors(
+				handler.ctx, handler.repourl.owner, handler.repourl.repo, &github.ListContributorsOptions{})
 		}
-		contribs, _, err := handler.ghClient.Repositories.ListContributors(
-			handler.ctx, handler.repourl.owner, handler.repourl.repo, &github.ListContributorsOptions{})
+
 		if err != nil {
 			handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
 			return
