@@ -223,6 +223,7 @@ func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
 
 func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
 	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+
 		return nil, fmt.Errorf("%w: ListIssues only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
 	if err := handler.setup(); err != nil {

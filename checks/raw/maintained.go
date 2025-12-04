@@ -25,11 +25,11 @@ func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	var result checker.MaintainedData
 
 	// Archived status.
-	archived, err := c.RepoClient.IsArchived()
-	if err != nil {
-		return result, fmt.Errorf("%w", err)
-	}
-	result.ArchivedStatus.Status = archived
+	// archived, err := c.RepoClient.IsArchived()
+	// if err != nil {
+	// 	return result, fmt.Errorf("%w", err)
+	// }
+	// result.ArchivedStatus.Status = archived
 
 	// Recent commits.
 	commits, err := c.RepoClient.ListCommits()
