@@ -333,7 +333,7 @@ type Reactions struct {
 func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
 	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		ctx := context.Background()
-		client, err := bigquery.NewClient(ctx, "future-infusion-474519-g8")
+		client, err := bigquery.NewClient(ctx, "project-fe1bf1cf-ce93-4992-991")
 		if err != nil {
 			return nil, fmt.Errorf("bigquery.NewClient: %v", err)
 		}
@@ -345,8 +345,8 @@ func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
 		date := handler.commits[0].CommittedDate.Format("2006-01-02 15:04:05")
 		// get date from commit hash
 
-		q := client.Query("select * from future-infusion-474519-g8.combined.c" +
-			" where name = '" + reponame +
+		q := client.Query("select * from project-fe1bf1cf-ce93-4992-991.combined.c" +
+			" where repo_name = '" + reponame +
 			"' AND created_at  <= '" + date +
 			"' ORDER BY created_at DESC")
 
