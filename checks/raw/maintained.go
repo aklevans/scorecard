@@ -24,12 +24,17 @@ import (
 func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	var result checker.MaintainedData
 
+	// result.IsHead = c.RepoClient.data.repourl.commitSHA == clients.HeadSHA
+
+	// result.IsHead = EqualFold(c.RepoClient.data.repourl.commitSHA, clients.HeadSHA)
+	// c.RepoClient
+
 	// Archived status.
-	// archived, err := c.RepoClient.IsArchived()
-	// if err != nil {
-	// 	return result, fmt.Errorf("%w", err)
-	// }
-	// result.ArchivedStatus.Status = archived
+	archived, err := c.RepoClient.IsArchived()
+	if err != nil {
+		return result, fmt.Errorf("%w", err)
+	}
+	result.ArchivedStatus.Status = archived
 
 	// Recent commits.
 	commits, err := c.RepoClient.ListCommits()
