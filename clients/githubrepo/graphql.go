@@ -16,19 +16,19 @@ package githubrepo
 
 import (
 	"context"
-	"encoding/json"
+	"database/sql"
 	"fmt"
-	"regexp"
+	"log"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/shurcooL/githubv4"
 
-	"cloud.google.com/go/bigquery"
+	_ "github.com/duckdb/duckdb-go/v2"
+
 	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
-	"google.golang.org/api/iterator"
 )
 
 const (
@@ -332,92 +332,108 @@ type Reactions struct {
 
 func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
 	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-		ctx := context.Background()
-		client, err := bigquery.NewClient(ctx, "project-fe1bf1cf-ce93-4992-991")
-		if err != nil {
-			return nil, fmt.Errorf("bigquery.NewClient: %v", err)
-		}
-
-		defer client.Close()
-
 		reponame := handler.repourl.owner + "/" + handler.repourl.repo
 		//i assume the latest date will always be zero (always is afaik)
 		date := handler.commits[0].CommittedDate.Format("2006-01-02 15:04:05")
 		// get date from commit hash
 
-		q := client.Query("select * from project-fe1bf1cf-ce93-4992-991.combined.c" +
-			" where repo_name = '" + reponame +
-			"' AND created_at  <= '" + date +
-			"' ORDER BY created_at DESC")
+		db, err := sql.Open("duckdb", "")
+		if err != nil {
+			return nil, fmt.Errorf("duckdb: %v", err)
+		}
+		defer db.Close()
 
-		q.Location = "US"
-		job, err := q.Run(ctx)
+		rows, err := db.Query("SELECT * FROM read_parquet('/media/alex/WDTwo/issue-events-with-names/issue-events-*.parquet') WHERE repo_name = '" + reponame +
+			"' AND created_at  <= '" + date + "' ORDER BY created_at DESC")
 		if err != nil {
-			return nil, err
+			log.Fatal(err)
 		}
-		status, err := job.Wait(ctx)
-		if err != nil {
-			return nil, err
-		}
-		if err := status.Err(); err != nil {
-			return nil, err
-		}
-		it, err := job.Read(ctx)
+		defer rows.Close()
+
+		// q := client.Query("select * from project-fe1bf1cf-ce93-4992-991.combined.c" +
+		// 	" where repo_name = '" + reponame +
+		// 	"' AND created_at  <= '" + date +
+		// 	"' ORDER BY created_at DESC")
+
+		// q.Location = "US"
+		// job, err := q.Run(ctx)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// status, err := job.Wait(ctx)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// if err := status.Err(); err != nil {
+		// 	return nil, err
+		// }
+		// it, err := job.Read(ctx)
 
 		// issues := make([]clients.Issue, 30)
 		issues := make(map[string]*clients.Issue)
 
-		for {
+		for rows.Next() {
+			var eventType string
+			var payload string
+			var repo_id int
+			var repo_name string
+			var created_at_string string
 
-			var row []bigquery.Value
+			if err := rows.Scan(&eventType, &payload, &repo_id, &repo_name, &created_at_string); err != nil {
+				log.Fatal(err)
+			}
+			fmt.Print(repo_name)
+			fmt.Print(created_at_string)
 
-			err := it.Next(&row)
-			if err == iterator.Done {
-				break
-			}
-			if err != nil {
-				return nil, err
-			}
+			// var row []bigquery.Value
 
-			var payload WebhookPayload
-			body := fmt.Sprintf("%v", row[1])
+			// err := it.Next(&row)
+			// if err == iterator.Done {
+			// 	break
+			// }
+			// if err != nil {
+			// 	return nil, err
+			// }
 
-			err = json.Unmarshal([]byte(body), &payload)
-			if err != nil {
-				panic(err)
-			}
-			r, _ := regexp.Compile(`https:\/\/github.com\/.*\/.*\/pull\/.*`)
-			if r.MatchString(payload.Issue.HTMLURL) {
-				continue
-			}
-			// if payload.Issue.HTMLURL
-			issue, exists := issues[payload.Issue.HTMLURL]
-			if !exists {
-				if len(issues) >= 30 {
-					continue
-				}
-				issue = new(clients.Issue)
-				issue.URI = &payload.Issue.HTMLURL
+			// var payload WebhookPayload
+			// body := fmt.Sprintf("%v", row[1])
 
-				issue.Author = new(clients.User)
-				// only Author field that is filled (even by scorecard normally)
-				issue.Author.Login = payload.Issue.User.Login
-				issue.AuthorAssociation = getRepoAssociation(&payload.Issue.AuthorAssociation)
-				// ISO 8601 layout
-				createdAt, _ := time.Parse("2006-01-02T15:04:05Z", payload.Issue.CreatedAt)
-				issue.CreatedAt = &createdAt
-				issues[payload.Issue.HTMLURL] = issue
-			}
-			if payload.Comment.URL != "" {
-				comment := clients.IssueComment{}
-				comment.Author = new(clients.User)
-				comment.Author.Login = payload.Comment.User.Login
-				comment.AuthorAssociation = getRepoAssociation(&payload.Comment.AuthorAssociation)
-				// ISO 8601 layout
-				createdAt, _ := time.Parse("2006-01-02T15:04:05Z", payload.Comment.CreatedAt)
-				comment.CreatedAt = &createdAt
-				issue.Comments = append(issue.Comments, comment)
-			}
+			// err = json.Unmarshal([]byte(body), &payload)
+			// if err != nil {
+			// 	panic(err)
+			// }
+			// r, _ := regexp.Compile(`https:\/\/github.com\/.*\/.*\/pull\/.*`)
+			// if r.MatchString(payload.Issue.HTMLURL) {
+			// 	continue
+			// }
+			// // if payload.Issue.HTMLURL
+			// issue, exists := issues[payload.Issue.HTMLURL]
+			// if !exists {
+			// 	if len(issues) >= 30 {
+			// 		continue
+			// 	}
+			// 	issue = new(clients.Issue)
+			// 	issue.URI = &payload.Issue.HTMLURL
+
+			// 	issue.Author = new(clients.User)
+			// 	// only Author field that is filled (even by scorecard normally)
+			// 	issue.Author.Login = payload.Issue.User.Login
+			// 	issue.AuthorAssociation = getRepoAssociation(&payload.Issue.AuthorAssociation)
+			// 	// ISO 8601 layout
+			// 	createdAt, _ := time.Parse("2006-01-02T15:04:05Z", payload.Issue.CreatedAt)
+			// 	issue.CreatedAt = &createdAt
+			// 	issues[payload.Issue.HTMLURL] = issue
+			// }
+			// if payload.Comment.URL != "" {
+			// 	comment := clients.IssueComment{}
+			// 	comment.Author = new(clients.User)
+			// 	comment.Author.Login = payload.Comment.User.Login
+			// 	comment.AuthorAssociation = getRepoAssociation(&payload.Comment.AuthorAssociation)
+			// 	// ISO 8601 layout
+			// 	createdAt, _ := time.Parse("2006-01-02T15:04:05Z", payload.Comment.CreatedAt)
+			// 	comment.CreatedAt = &createdAt
+			// 	issue.Comments = append(issue.Comments, comment)
+			// }
 			// issue := clients.Issue(URI: )
 			// fmt.Println(row)
 

@@ -17,7 +17,6 @@ package githubrepo
 import (
 	"context"
 	"fmt"
-	"sort"
 	"sync"
 
 	"github.com/google/go-github/v53/github"
@@ -50,12 +49,12 @@ func (handler *contributorsHandler) setup() error {
 		// if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		// 	// gets contributors from graphQL for a given commit date
 		//order wont be the same bc using a map but values will be
-		contribs, _, err = handler.ghClient.Repositories.ListContributorsGraphQL(
-			handler.ctx, handler.repourl.owner, handler.repourl.repo, handler.repourl.commitSHA, &github.ListContributorsOptions{})
-		sort.Slice(contribs, func(i, j int) bool {
-			return *contribs[i].Contributions > *contribs[j].Contributions
-		})
-		contribs = contribs[0:30]
+		// contribs, _, err = handler.ghClient.Repositories.ListContributorsGraphQL(
+		// 	handler.ctx, handler.repourl.owner, handler.repourl.repo, handler.repourl.commitSHA, &github.ListContributorsOptions{})
+		// sort.Slice(contribs, func(i, j int) bool {
+		// 	return *contribs[i].Contributions > *contribs[j].Contributions
+		// })
+		// contribs = contribs[0:30]
 
 		// } else {
 
