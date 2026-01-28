@@ -28,7 +28,13 @@ const CheckMaintained = "Maintained"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckMaintained, Maintained, nil); err != nil {
+
+	//allow commit based for new functionality
+	supportedRequestTypes := []checker.RequestType{
+		checker.CommitBased,
+	}
+
+	if err := registerCheck(CheckMaintained, Maintained, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}

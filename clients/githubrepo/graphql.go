@@ -16,12 +16,16 @@ package githubrepo
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/shurcooL/githubv4"
+
+	_ "github.com/duckdb/duckdb-go/v2"
 
 	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
@@ -44,6 +48,7 @@ const (
 type graphqlData struct {
 	Repository struct {
 		IsArchived githubv4.Boolean
+		ArchivedAt githubv4.DateTime
 		Object     struct {
 			Commit struct {
 				History struct {
@@ -144,6 +149,7 @@ type graphqlHandler struct {
 	commits     []clients.Commit
 	issues      []clients.Issue
 	archived    bool
+	archivedAt  time.Time
 	commitDepth int
 }
 
@@ -206,8 +212,12 @@ func (handler *graphqlHandler) setup() error {
 			"historyCursor":          (*githubv4.String)(nil),
 		}
 		handler.commits, handler.errSetup = populateCommits(handler, vars)
+
+		//heres where we would add get contributors... from a given commit
 		handler.issues = issuesFrom(handler.data)
+
 		handler.archived = bool(handler.data.Repository.IsArchived)
+		handler.archivedAt = handler.data.Repository.ArchivedAt.Time
 	})
 	return handler.errSetup
 }
@@ -219,9 +229,221 @@ func (handler *graphqlHandler) getCommits() ([]clients.Commit, error) {
 	return handler.commits, nil
 }
 
+type WebhookPayload struct {
+	Action  string  `json:"action"`
+	Issue   Issue   `json:"issue"`
+	Comment Comment `json:"comment"`
+}
+
+type Issue struct {
+	URL           string `json:"url"`
+	RepositoryURL string `json:"repository_url"`
+	LabelsURL     string `json:"labels_url"`
+	CommentsURL   string `json:"comments_url"`
+	EventsURL     string `json:"events_url"`
+	HTMLURL       string `json:"html_url"`
+
+	ID     int64  `json:"id"`
+	NodeID string `json:"node_id"`
+	Number int    `json:"number"`
+	Title  string `json:"title"`
+
+	User User `json:"user"`
+
+	State     string        `json:"state"`
+	Locked    bool          `json:"locked"`
+	Assignee  interface{}   `json:"assignee"`
+	Assignees []interface{} `json:"assignees"`
+	Milestone interface{}   `json:"milestone"`
+
+	Comments  int     `json:"comments"`
+	CreatedAt string  `json:"created_at"`
+	UpdatedAt string  `json:"updated_at"`
+	ClosedAt  *string `json:"closed_at"`
+
+	AuthorAssociation string  `json:"author_association"`
+	ActiveLockReason  *string `json:"active_lock_reason"`
+
+	Body string `json:"body"`
+
+	Reactions Reactions `json:"reactions"`
+
+	TimelineURL           string      `json:"timeline_url"`
+	PerformedViaGithubApp interface{} `json:"performed_via_github_app"`
+	StateReason           interface{} `json:"state_reason"`
+}
+
+type Comment struct {
+	URL      string `json:"url"`
+	HTMLURL  string `json:"html_url"`
+	IssueURL string `json:"issue_url"`
+
+	ID     int64  `json:"id"`
+	NodeID string `json:"node_id"`
+
+	User User `json:"user"`
+
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+
+	AuthorAssociation string `json:"author_association"`
+	Body              string `json:"body"`
+
+	Reactions Reactions `json:"reactions"`
+
+	PerformedViaGithubApp interface{} `json:"performed_via_github_app"`
+}
+
+type User struct {
+	Login      string `json:"login"`
+	ID         int64  `json:"id"`
+	NodeID     string `json:"node_id"`
+	AvatarURL  string `json:"avatar_url"`
+	GravatarID string `json:"gravatar_id"`
+	URL        string `json:"url"`
+	HTMLURL    string `json:"html_url"`
+
+	FollowersURL      string `json:"followers_url"`
+	FollowingURL      string `json:"following_url"`
+	GistsURL          string `json:"gists_url"`
+	StarredURL        string `json:"starred_url"`
+	SubscriptionsURL  string `json:"subscriptions_url"`
+	OrganizationsURL  string `json:"organizations_url"`
+	ReposURL          string `json:"repos_url"`
+	EventsURL         string `json:"events_url"`
+	ReceivedEventsURL string `json:"received_events_url"`
+
+	Type      string `json:"type"`
+	SiteAdmin bool   `json:"site_admin"`
+}
+
+type Reactions struct {
+	URL        string `json:"url"`
+	TotalCount int    `json:"total_count"`
+	PlusOne    int    `json:"+1"`
+	MinusOne   int    `json:"-1"`
+	Laugh      int    `json:"laugh"`
+	Hooray     int    `json:"hooray"`
+	Confused   int    `json:"confused"`
+	Heart      int    `json:"heart"`
+	Rocket     int    `json:"rocket"`
+	Eyes       int    `json:"eyes"`
+}
+
 func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
 	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-		return nil, fmt.Errorf("%w: ListIssues only supported for HEAD queries", clients.ErrUnsupportedFeature)
+		reponame := handler.repourl.owner + "/" + handler.repourl.repo
+		//i assume the latest date will always be zero (always is afaik)
+		date := handler.commits[0].CommittedDate.Format("2006-01-02 15:04:05")
+		// get date from commit hash
+
+		db, err := sql.Open("duckdb", "")
+		if err != nil {
+			return nil, fmt.Errorf("duckdb: %v", err)
+		}
+		defer db.Close()
+
+		rows, err := db.Query("SELECT * FROM read_parquet('/media/alex/WDTwo/issue-events-with-names/issue-events-*.parquet') WHERE repo_name = '" + reponame +
+			"' AND created_at  <= '" + date + "' ORDER BY created_at DESC")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
+
+		// q := client.Query("select * from project-fe1bf1cf-ce93-4992-991.combined.c" +
+		// 	" where repo_name = '" + reponame +
+		// 	"' AND created_at  <= '" + date +
+		// 	"' ORDER BY created_at DESC")
+
+		// q.Location = "US"
+		// job, err := q.Run(ctx)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// status, err := job.Wait(ctx)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// if err := status.Err(); err != nil {
+		// 	return nil, err
+		// }
+		// it, err := job.Read(ctx)
+
+		// issues := make([]clients.Issue, 30)
+		issues := make(map[string]*clients.Issue)
+
+		for rows.Next() {
+			var eventType string
+			var payload string
+			var repo_id int
+			var repo_name string
+			var created_at_string string
+
+			if err := rows.Scan(&eventType, &payload, &repo_id, &repo_name, &created_at_string); err != nil {
+				log.Fatal(err)
+			}
+			fmt.Print(repo_name)
+			fmt.Print(created_at_string)
+
+			// var row []bigquery.Value
+
+			// err := it.Next(&row)
+			// if err == iterator.Done {
+			// 	break
+			// }
+			// if err != nil {
+			// 	return nil, err
+			// }
+
+			// var payload WebhookPayload
+			// body := fmt.Sprintf("%v", row[1])
+
+			// err = json.Unmarshal([]byte(body), &payload)
+			// if err != nil {
+			// 	panic(err)
+			// }
+			// r, _ := regexp.Compile(`https:\/\/github.com\/.*\/.*\/pull\/.*`)
+			// if r.MatchString(payload.Issue.HTMLURL) {
+			// 	continue
+			// }
+			// // if payload.Issue.HTMLURL
+			// issue, exists := issues[payload.Issue.HTMLURL]
+			// if !exists {
+			// 	if len(issues) >= 30 {
+			// 		continue
+			// 	}
+			// 	issue = new(clients.Issue)
+			// 	issue.URI = &payload.Issue.HTMLURL
+
+			// 	issue.Author = new(clients.User)
+			// 	// only Author field that is filled (even by scorecard normally)
+			// 	issue.Author.Login = payload.Issue.User.Login
+			// 	issue.AuthorAssociation = getRepoAssociation(&payload.Issue.AuthorAssociation)
+			// 	// ISO 8601 layout
+			// 	createdAt, _ := time.Parse("2006-01-02T15:04:05Z", payload.Issue.CreatedAt)
+			// 	issue.CreatedAt = &createdAt
+			// 	issues[payload.Issue.HTMLURL] = issue
+			// }
+			// if payload.Comment.URL != "" {
+			// 	comment := clients.IssueComment{}
+			// 	comment.Author = new(clients.User)
+			// 	comment.Author.Login = payload.Comment.User.Login
+			// 	comment.AuthorAssociation = getRepoAssociation(&payload.Comment.AuthorAssociation)
+			// 	// ISO 8601 layout
+			// 	createdAt, _ := time.Parse("2006-01-02T15:04:05Z", payload.Comment.CreatedAt)
+			// 	comment.CreatedAt = &createdAt
+			// 	issue.Comments = append(issue.Comments, comment)
+			// }
+			// issue := clients.Issue(URI: )
+			// fmt.Println(row)
+
+		}
+		issueSlice := make([]clients.Issue, 0, len(issues))
+		for _, i := range issues {
+			issueSlice = append(issueSlice, *i)
+		}
+		return issueSlice, nil
+		// return nil, fmt.Errorf("%w: ListIssues only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during graphqlHandler.setup: %w", err)
@@ -231,7 +453,13 @@ func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
 
 func (handler *graphqlHandler) isArchived() (bool, error) {
 	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-		return false, fmt.Errorf("%w: IsArchived only supported for HEAD queries", clients.ErrUnsupportedFeature)
+		if handler.archivedAt.IsZero() {
+			return false, nil
+		}
+		commitDate := handler.commits[0].CommittedDate
+		return commitDate.After(handler.archivedAt), nil
+
+		// return false, fmt.Errorf("%w: IsArchived only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
 	if err := handler.setup(); err != nil {
 		return false, fmt.Errorf("error during graphqlHandler.setup: %w", err)
@@ -360,7 +588,7 @@ func getRepoAssociation(association *string) *clients.RepoAssociation {
 	case "OWNER":
 		repoAssociation = clients.RepoAssociationOwner
 	default:
-		return nil
+		repoAssociation = clients.RepoAssociationMannequin
 	}
 	return &repoAssociation
 }

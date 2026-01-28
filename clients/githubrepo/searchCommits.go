@@ -36,10 +36,11 @@ func (handler *searchCommitsHandler) init(ctx context.Context, repourl *Repo) {
 }
 
 func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
-	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-		return nil, fmt.Errorf(
-			"%w: Search only supported for HEAD queries", clients.ErrUnsupportedFeature)
-	}
+
+	// if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+	// 	return nil, fmt.Errorf(
+	// 		"%w: Search only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	// }
 	query, err := handler.buildQuery(request)
 	if err != nil {
 		return nil, fmt.Errorf("handler.buildQuery: %w", err)
