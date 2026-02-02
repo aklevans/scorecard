@@ -64,3 +64,6 @@ newRelease.json
 # Ignore golang's vendored files
 /vendor/
 /tools/vendor/
+
+
+nohup.out
