@@ -32,7 +32,7 @@ var _ = Describe("E2E TEST: azuredevopsrepo.buildsHandler", func() {
 			repoClient, err := CreateAzureDevOpsClient(context.Background(), repo)
 			Expect(err).Should(BeNil())
 
-			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0, "")
 			Expect(err).Should(BeNil())
 
 			builds, err := repoClient.ListSuccessfulWorkflowRuns("azure-pipelines.yml")

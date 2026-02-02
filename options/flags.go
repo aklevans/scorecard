@@ -144,6 +144,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		"nuget package to check, given that the nuget package has a GitHub repository",
 	)
 
+	cmd.Flags().StringVar(
+		&o.CommitDate,
+		"commit-date",
+		o.CommitDate,
+		"the commit date (in ISO 8601 format) to use for checks that require it (e.g., '2023-10-01T00:00:00Z')",
+	)
+
 	cmd.Flags().StringSliceVar(
 		&o.Metadata,
 		FlagMetadata,

@@ -62,7 +62,7 @@ type Client struct {
 	commitDepth   int
 }
 
-func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
+func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int, commitDate string) error {
 	azdoRepo, ok := inputRepo.(*Repo)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)

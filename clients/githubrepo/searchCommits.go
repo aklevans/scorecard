@@ -62,9 +62,9 @@ func (handler *searchCommitsHandler) buildQuery(request clients.SearchCommitsOpt
 	}
 	var queryBuilder strings.Builder
 	if _, err := queryBuilder.WriteString(
-		fmt.Sprintf("repo:%s/%s author:%s",
+		fmt.Sprintf("repo:%s/%s author:%s committer-date:<%s",
 			handler.repourl.owner, handler.repourl.repo,
-			request.Author)); err != nil {
+			request.Author, request.CommitterDate)); err != nil {
 		return "", fmt.Errorf("WriteString: %w", err)
 	}
 

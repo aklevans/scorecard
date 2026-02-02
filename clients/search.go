@@ -14,8 +14,6 @@
 
 package clients
 
-import "time"
-
 // SearchRequest queries a repo for `Query`.
 // If `Filename` is provided, only matching filenames are queried.
 // If `Path` is provided, only files with matching paths are queried.
@@ -39,5 +37,5 @@ type SearchResult struct {
 // SearchCommitsOptions represents the parameters in the search commit query.
 type SearchCommitsOptions struct {
 	Author        string
-	CommitterDate *time.Time
+	CommitterDate string
 }

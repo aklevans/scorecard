@@ -73,7 +73,7 @@ func checkRepoInaccessible(repo *gitlab.Project) error {
 }
 
 // InitRepo sets up the GitLab project in local storage for improving performance and GitLab token usage efficiency.
-func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
+func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int, commitDate string) error {
 	glRepo, ok := inputRepo.(*Repo)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
