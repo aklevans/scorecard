@@ -38,13 +38,13 @@ func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolDat
 	}
 
 	//uncomment when actually running!
-	// if len(tools) != 0 {
-	// 	return checker.DependencyUpdateToolData{Tools: tools}, nil
-	// }
+	if len(tools) != 0 {
+		return checker.DependencyUpdateToolData{Tools: tools}, nil
+	}
 
 	// get date of commit
 
-	commits, err := c.SearchCommits(clients.SearchCommitsOptions{Author: "dependabot[bot]", CommitterDate: "2008-01-01"})
+	commits, err := c.SearchCommits(clients.SearchCommitsOptions{Author: "dependabot[bot]"})
 	if err != nil {
 		// TODO https://github.com/ossf/scorecard/issues/1709
 		// some repo clients (e.g. local) don't currently have the ability to search commits,
