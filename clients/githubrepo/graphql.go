@@ -17,8 +17,10 @@ package githubrepo
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -332,7 +334,7 @@ type Reactions struct {
 
 func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
 	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-		reponame := handler.repourl.owner + "/" + handler.repourl.repo
+		reponame := handler.repourl.owner + "%2F" + handler.repourl.repo
 		//i assume the latest date will always be zero (always is afaik)
 		date := handler.commits[0].CommittedDate.Format("2006-01-02 15:04:05")
 		// get date from commit hash
@@ -343,8 +345,9 @@ func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
 		}
 		defer db.Close()
 
-		rows, err := db.Query("SELECT * FROM read_parquet('/media/alex/WDTwo/issue-events-with-names/issue-events-*.parquet') WHERE repo_name = '" + reponame +
-			"' AND created_at  <= '" + date + "' ORDER BY created_at DESC")
+		rows, err := db.Query(fmt.Sprintf(`SELECT *FROM read_parquet('/Users/adminuser/Documents/longitudinal/issue-events-partitioned-name/repo_name=%s/*.parquet')
+											WHERE created_at <= '%s' ORDER BY created_at DESC`, reponame, date))
+
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -374,68 +377,58 @@ func (handler *graphqlHandler) getIssues() ([]clients.Issue, error) {
 
 		for rows.Next() {
 			var eventType string
-			var payload string
+			var payload_str string
 			var repo_id int
 			var repo_name string
 			var created_at_string string
 
-			if err := rows.Scan(&eventType, &payload, &repo_id, &repo_name, &created_at_string); err != nil {
+			if err := rows.Scan(&eventType, &payload_str, &repo_id, &created_at_string, &repo_name); err != nil {
 				log.Fatal(err)
 			}
-			fmt.Print(repo_name)
-			fmt.Print(created_at_string)
+			// fmt.Print(repo_name)
+			// fmt.Print(created_at_string)
 
-			// var row []bigquery.Value
+			var payload WebhookPayload
 
-			// err := it.Next(&row)
-			// if err == iterator.Done {
-			// 	break
-			// }
-			// if err != nil {
-			// 	return nil, err
-			// }
+			err = json.Unmarshal([]byte(payload_str), &payload)
+			if err != nil {
+				// panic(err)
+				continue //idk what else to do. some times payload doesnt have the right fields, so we just skip those rows
+			}
+			// making sure its actually an issue event and not a pr event (since prs also have issues in github)
+			r, _ := regexp.Compile(`https:\/\/github.com\/.*\/.*\/pull\/.*`)
+			if r.MatchString(payload.Issue.HTMLURL) {
+				continue
+			}
+			// if payload.Issue.HTMLURL
+			issue, exists := issues[payload.Issue.HTMLURL]
+			if !exists {
+				if len(issues) >= 30 {
+					continue
+				}
+				issue = new(clients.Issue)
+				issue.URI = &payload.Issue.HTMLURL
 
-			// var payload WebhookPayload
-			// body := fmt.Sprintf("%v", row[1])
-
-			// err = json.Unmarshal([]byte(body), &payload)
-			// if err != nil {
-			// 	panic(err)
-			// }
-			// r, _ := regexp.Compile(`https:\/\/github.com\/.*\/.*\/pull\/.*`)
-			// if r.MatchString(payload.Issue.HTMLURL) {
-			// 	continue
-			// }
-			// // if payload.Issue.HTMLURL
-			// issue, exists := issues[payload.Issue.HTMLURL]
-			// if !exists {
-			// 	if len(issues) >= 30 {
-			// 		continue
-			// 	}
-			// 	issue = new(clients.Issue)
-			// 	issue.URI = &payload.Issue.HTMLURL
-
-			// 	issue.Author = new(clients.User)
-			// 	// only Author field that is filled (even by scorecard normally)
-			// 	issue.Author.Login = payload.Issue.User.Login
-			// 	issue.AuthorAssociation = getRepoAssociation(&payload.Issue.AuthorAssociation)
-			// 	// ISO 8601 layout
-			// 	createdAt, _ := time.Parse("2006-01-02T15:04:05Z", payload.Issue.CreatedAt)
-			// 	issue.CreatedAt = &createdAt
-			// 	issues[payload.Issue.HTMLURL] = issue
-			// }
-			// if payload.Comment.URL != "" {
-			// 	comment := clients.IssueComment{}
-			// 	comment.Author = new(clients.User)
-			// 	comment.Author.Login = payload.Comment.User.Login
-			// 	comment.AuthorAssociation = getRepoAssociation(&payload.Comment.AuthorAssociation)
-			// 	// ISO 8601 layout
-			// 	createdAt, _ := time.Parse("2006-01-02T15:04:05Z", payload.Comment.CreatedAt)
-			// 	comment.CreatedAt = &createdAt
-			// 	issue.Comments = append(issue.Comments, comment)
-			// }
-			// issue := clients.Issue(URI: )
-			// fmt.Println(row)
+				issue.Author = new(clients.User)
+				// only Author field that is filled (even by scorecard normally)
+				issue.Author.Login = payload.Issue.User.Login
+				issue.AuthorAssociation = getRepoAssociation(&payload.Issue.AuthorAssociation)
+				// ISO 8601 layout
+				createdAt, _ := time.Parse("2006-01-02T15:04:05Z", payload.Issue.CreatedAt)
+				issue.CreatedAt = &createdAt
+				issues[payload.Issue.HTMLURL] = issue
+			}
+			if payload.Comment.URL != "" {
+				comment := clients.IssueComment{}
+				comment.Author = new(clients.User)
+				comment.Author.Login = payload.Comment.User.Login
+				comment.AuthorAssociation = getRepoAssociation(&payload.Comment.AuthorAssociation)
+				// ISO 8601 layout
+				createdAt, _ := time.Parse("2006-01-02T15:04:05Z", payload.Comment.CreatedAt)
+				comment.CreatedAt = &createdAt
+				issue.Comments = append(issue.Comments, comment)
+			}
+			// fmt.Println(issue)
 
 		}
 		issueSlice := make([]clients.Issue, 0, len(issues))
