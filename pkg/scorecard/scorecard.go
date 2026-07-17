@@ -90,6 +90,7 @@ func runScorecard(ctx context.Context,
 	repo clients.Repo,
 	commitSHA string,
 	commitDepth int,
+	commitDate string,
 	checksToRun checker.CheckNameToFnMap,
 	probesToRun []string,
 	repoClient clients.RepoClient,
@@ -98,7 +99,7 @@ func runScorecard(ctx context.Context,
 	vulnsClient clients.VulnerabilitiesClient,
 	projectClient packageclient.ProjectPackageClient,
 ) (Result, error) {
-	if err := repoClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
+	if err := repoClient.InitRepo(repo, commitSHA, commitDepth, commitDate); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
 		//nolint:wrapcheck
 		return Result{}, err
@@ -250,6 +251,7 @@ type runConfig struct {
 	checks        []string
 	probes        []string
 	commitDepth   int
+	CommitDate    string
 }
 
 type Option func(*runConfig) error
@@ -284,6 +286,13 @@ func WithCommitSHA(sha string) Option {
 func WithChecks(checks []string) Option {
 	return func(c *runConfig) error {
 		c.checks = checks
+		return nil
+	}
+}
+
+func Date(date string) Option {
+	return func(c *runConfig) error {
+		c.CommitDate = date
 		return nil
 	}
 }
@@ -390,6 +399,6 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error)
 		return Result{}, fmt.Errorf("getting enabled checks: %w", err)
 	}
 
-	return runScorecard(ctx, repo, c.commit, c.commitDepth, checksToRun, c.probes,
+	return runScorecard(ctx, repo, c.commit, c.commitDepth, c.CommitDate, checksToRun, c.probes,
 		c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient, c.projectClient)
 }

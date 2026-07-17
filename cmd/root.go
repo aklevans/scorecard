@@ -150,6 +150,7 @@ func rootCmd(o *options.Options) error {
 		scorecard.WithCommitDepth(o.CommitDepth),
 		scorecard.WithProbes(enabledProbes),
 		scorecard.WithChecks(checks),
+		scorecard.Date(o.CommitDate),
 	)
 	if err != nil {
 		return fmt.Errorf("scorecard.Run: %w", err)

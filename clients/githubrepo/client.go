@@ -65,7 +65,7 @@ type Client struct {
 const defaultGhHost = "github.com"
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
-func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
+func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int, commitDate string) error {
 	ghRepo, ok := inputRepo.(*Repo)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
@@ -86,6 +86,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 		repo:          repo.GetName(),
 		defaultBranch: repo.GetDefaultBranch(),
 		commitSHA:     commitSHA,
+		commitDate:    commitDate,
 	}
 
 	// Init tarballHandler.
@@ -212,7 +213,7 @@ func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient,
 
 	logger := log.NewLogger(log.InfoLevel)
 	c := CreateGithubRepoClient(ctx, logger)
-	if err := c.InitRepo(dotGithubRepo, clients.HeadSHA, 0); err != nil {
+	if err := c.InitRepo(dotGithubRepo, clients.HeadSHA, 0, ""); err != nil {
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
 
@@ -256,6 +257,7 @@ func (client *Client) Search(request clients.SearchRequest) (clients.SearchRespo
 
 // SearchCommits implements RepoClient.SearchCommits.
 func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
+	request.CommitterDate = client.repourl.commitDate
 	return client.searchCommits.search(request)
 }
 
@@ -356,7 +358,7 @@ func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.R
 	}
 
 	ossFuzzRepoClient := CreateGithubRepoClient(ctx, logger)
-	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, clients.HeadSHA, 0); err != nil {
+	if err := ossFuzzRepoClient.InitRepo(ossFuzzRepo, clients.HeadSHA, 0, ""); err != nil {
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
 	return ossFuzzRepoClient, nil
