@@ -53,6 +53,7 @@ func TestCompanyContains(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := companyContains(tc.cs, tc.company)
@@ -92,6 +93,7 @@ func TestOrgContains(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := orgContains(tc.os, tc.login)

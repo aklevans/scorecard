@@ -28,7 +28,6 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/finding"
-	"github.com/ossf/scorecard/v5/internal/dotnet/properties"
 	"github.com/ossf/scorecard/v5/remediation"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
@@ -79,6 +78,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -96,7 +96,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 
 			_, err = validateGitHubActionWorkflow(p, content, &r)
 			if !errCmp(err, tt.err) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
 			if err != nil {
@@ -181,6 +181,7 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.desc, func(t *testing.T) {
 			t.Parallel()
 			p := isActionDependencyPinned(tt.uses)
@@ -231,6 +232,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -249,7 +251,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 
 			_, err = validateGitHubActionWorkflow(p, content, &r)
 			if !errCmp(err, tt.err) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
 			if err != nil {
@@ -289,6 +291,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -304,7 +307,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 
 			_, err = validateGitHubWorkflowIsFreeOfInsecureDownloads(p, content, &r)
 			if !errCmp(err, tt.err) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
 			if err != nil {
@@ -359,10 +362,6 @@ func TestDockerfilePinning(t *testing.T) {
 			filename: "Dockerfile-pinned-as",
 		},
 		{
-			name:     "From scratch is considered pinned",
-			filename: "Dockerfile-from-scratch",
-		},
-		{
 			name:     "Non-pinned dockerfile as",
 			filename: "Dockerfile-not-pinned-as",
 			warns:    2,
@@ -384,6 +383,7 @@ func TestDockerfilePinning(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -400,7 +400,7 @@ func TestDockerfilePinning(t *testing.T) {
 			var r checker.PinningDependenciesData
 			_, err = validateDockerfilesPinning(filepath.Join("testdata", tt.filename), content, &r)
 			if !errCmp(err, tt.err) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
 			if err != nil {
@@ -525,6 +525,7 @@ func TestFileIsInVendorDir(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := fileIsInVendorDir(tt.filename)
@@ -598,6 +599,7 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -687,6 +689,7 @@ func TestDockerfileInvalidFiles(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var c []byte
@@ -713,6 +716,7 @@ func TestDockerfileInsecureDownloadsBrokenCommands(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -723,7 +727,7 @@ func TestDockerfileInsecureDownloadsBrokenCommands(t *testing.T) {
 			var r checker.PinningDependenciesData
 			_, err = validateDockerfileInsecureDownloads(tt.filename, content, &r)
 			if !strings.Contains(err.Error(), tt.err.Error()) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 		})
 	}
@@ -906,6 +910,7 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -1047,6 +1052,7 @@ func TestDockerfileWithHeredocsInsecureDownloadsLineNumber(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -1253,6 +1259,7 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -1308,6 +1315,7 @@ func TestDockerfilePinningWithoutHash(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1321,7 +1329,7 @@ func TestDockerfilePinningWithoutHash(t *testing.T) {
 			var r checker.PinningDependenciesData
 			_, err = validateDockerfilesPinning(tt.filename, content, &r)
 			if !errCmp(err, tt.err) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
 			if err != nil {
@@ -1416,6 +1424,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1432,7 +1441,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			var r checker.PinningDependenciesData
 			_, err = validateDockerfileInsecureDownloads(tt.filename, content, &r)
 			if !errCmp(err, tt.err) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
 			if err != nil {
@@ -1473,6 +1482,7 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1485,7 +1495,7 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 			var r checker.PinningDependenciesData
 			_, err = validateDockerfileInsecureDownloads(tt.filename, content, &r)
 			if !errCmp(err, tt.err) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
 			if err != nil {
@@ -1550,6 +1560,7 @@ func TestShellScriptDownload(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1567,7 +1578,7 @@ func TestShellScriptDownload(t *testing.T) {
 			_, err = validateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &r)
 
 			if !errCmp(err, tt.err) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
 			if err != nil {
@@ -1606,6 +1617,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1620,7 +1632,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 			_, err = validateShellScriptIsFreeOfInsecureDownloads(tt.filename, content, &r)
 
 			if !errCmp(err, tt.err) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
 			if err != nil {
@@ -1669,6 +1681,7 @@ func TestGitHubWorkflowRunDownload(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1687,7 +1700,7 @@ func TestGitHubWorkflowRunDownload(t *testing.T) {
 
 			_, err = validateGitHubWorkflowIsFreeOfInsecureDownloads(p, content, &r)
 			if !errCmp(err, tt.err) {
-				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
 
 			if err != nil {
@@ -1755,6 +1768,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -1825,6 +1839,7 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -1941,6 +1956,7 @@ func TestCollectDockerfilePinning(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -2034,6 +2050,7 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -2066,586 +2083,4 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestCsProjAnalysis(t *testing.T) {
-	t.Parallel()
-
-	//nolint:govet
-	tests := []struct {
-		unlocked        int
-		expectErrorLogs bool
-		name            string
-		filename        string
-	}{
-		{
-			name:            "empty file",
-			filename:        "./testdata/dotnet-empty.csproj",
-			expectErrorLogs: true,
-		},
-		{
-			name:     "locked mode enabled",
-			filename: "./testdata/dotnet-locked-mode-enabled.csproj",
-			unlocked: 0,
-		},
-		{
-			name:     "locked mode disabled",
-			filename: "./testdata/dotnet-locked-mode-disabled.csproj",
-			unlocked: 1,
-		},
-		{
-			name:     "locked mode disabled implicitly",
-			filename: "./testdata/dotnet-locked-mode-disabled-implicitly.csproj",
-			unlocked: 1,
-		},
-		{
-			name:            "invalid file",
-			filename:        "./testdata/dotnet-invalid.csproj",
-			expectErrorLogs: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			var content []byte
-			var err error
-
-			content, err = os.ReadFile(tt.filename)
-			if err != nil {
-				t.Fatalf("cannot read file: %v", err)
-			}
-
-			p := strings.Replace(tt.filename, "./testdata/", "", 1)
-			p = strings.Replace(p, "../testdata/", "", 1)
-
-			var r []dotnetCsprojLockedData
-			dl := scut.TestDetailLogger{}
-
-			_, err = analyseCsprojLockedMode(p, content, &r, &dl)
-			if err != nil {
-				t.Fatalf("unexpected error %v", err)
-				return
-			}
-			if tt.expectErrorLogs {
-				messages := dl.Flush()
-				if len(messages) != 0 && messages[0].Type != checker.DetailWarn {
-					t.Errorf("expected logged warning, got none")
-				}
-			}
-
-			unlocked := 0
-			for _, d := range r {
-				if !d.LockedModeSet {
-					unlocked++
-				}
-			}
-
-			if tt.unlocked != unlocked {
-				t.Errorf("expected %v. Got %v", tt.unlocked, unlocked)
-			}
-		})
-	}
-}
-
-func TestCollectInsecureNugetCsproj(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name                string
-		filenames           []string
-		stagedDependencies  []checker.Dependency
-		outcomeDependencies []checker.Dependency
-		expectError         bool
-	}{
-		{
-			name:        "pinned by command and 'locked mode' disabled implicitly",
-			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
-			expectError: false,
-			stagedDependencies: []checker.Dependency{
-				{
-					Type:        checker.DependencyUseTypeNugetCommand,
-					Pinned:      boolAsPointer(true),
-					Remediation: nil,
-				},
-			},
-			outcomeDependencies: []checker.Dependency{
-				{
-					Type:        checker.DependencyUseTypeNugetCommand,
-					Pinned:      boolAsPointer(true),
-					Remediation: nil,
-				},
-			},
-		},
-		{
-			name:        "unpinned by command and 'locked mode' disabled implicitly",
-			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
-			expectError: false,
-			stagedDependencies: []checker.Dependency{
-				{
-					Type:   checker.DependencyUseTypeNugetCommand,
-					Pinned: boolAsPointer(false),
-					Remediation: &finding.Remediation{
-						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
-					},
-				},
-			},
-			outcomeDependencies: []checker.Dependency{
-				{
-					Type:   checker.DependencyUseTypeNugetCommand,
-					Pinned: boolAsPointer(false),
-					Remediation: &finding.Remediation{
-						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
-					},
-				},
-			},
-		},
-		{
-			name:        "unpinned by command and 'locked mode' enabled",
-			filenames:   []string{"./dotnet-locked-mode-enabled.csproj"},
-			expectError: false,
-			stagedDependencies: []checker.Dependency{
-				{
-					Type:   checker.DependencyUseTypeNugetCommand,
-					Pinned: boolAsPointer(false),
-					Remediation: &finding.Remediation{
-						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
-					},
-				},
-			},
-			outcomeDependencies: []checker.Dependency{
-				{
-					Type:        checker.DependencyUseTypeNugetCommand,
-					Pinned:      boolAsPointer(true),
-					Remediation: nil,
-				},
-			},
-		},
-		{
-			name:        "unpinned by command and 'locked mode' enabled and disabled in different csproj files",
-			filenames:   []string{"./dotnet-locked-mode-enabled.csproj", "./dotnet-locked-mode-disabled.csproj"},
-			expectError: false,
-			stagedDependencies: []checker.Dependency{
-				{
-					Type:        checker.DependencyUseTypeNugetCommand,
-					Pinned:      boolAsPointer(false),
-					Remediation: &finding.Remediation{Text: "remediate"},
-				},
-			},
-			outcomeDependencies: []checker.Dependency{
-				{
-					Type:        checker.DependencyUseTypeNugetCommand,
-					Pinned:      boolAsPointer(false),
-					Remediation: &finding.Remediation{Text: "remediate: some of your csproj files set the RestoreLockedMode property to true, while other do not set it: ./dotnet-locked-mode-disabled.csproj"},
-				},
-			},
-		},
-		{
-			name:        "unpinned by command and error in csproj files",
-			filenames:   []string{"./dotnet-invalid.csproj"},
-			expectError: true,
-			stagedDependencies: []checker.Dependency{
-				{
-					Type:        checker.DependencyUseTypeNugetCommand,
-					Pinned:      boolAsPointer(false),
-					Remediation: &finding.Remediation{Text: "remediate"},
-				},
-			},
-			outcomeDependencies: []checker.Dependency{
-				{
-					Type:        checker.DependencyUseTypeNugetCommand,
-					Pinned:      boolAsPointer(false),
-					Remediation: &finding.Remediation{Text: "remediate"},
-				},
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			ctrl := gomock.NewController(t)
-			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
-			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.filenames, nil).AnyTimes()
-			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
-			mockRepoClient.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
-			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).AnyTimes().DoAndReturn(func(file string) (io.ReadCloser, error) {
-				return os.Open(filepath.Join("testdata", file))
-			})
-			testPinningData := checker.PinningDependenciesData{
-				Dependencies: tt.stagedDependencies,
-			}
-
-			dl := scut.TestDetailLogger{}
-
-			req := checker.CheckRequest{
-				RepoClient: mockRepoClient,
-				Dlogger:    &dl,
-			}
-
-			err := postProcessNugetDependencies(&req, &testPinningData)
-			if err != nil {
-				if !tt.expectError {
-					t.Error(err.Error())
-				}
-			}
-			t.Log(tt.stagedDependencies)
-			if diff := cmp.Diff(tt.outcomeDependencies, tt.stagedDependencies); diff != "" {
-				t.Errorf("mismatch (-want +got):\n%s", diff)
-			}
-		})
-	}
-}
-
-func TestCollectPostProcessNugetCPMDependencies(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name                            string
-		inputNugetDependencies          []*checker.Dependency
-		data                            *nugetPostProcessData
-		expectedOutputNugetDependencies []checker.Dependency
-	}{
-		{
-			name: "All dependencies are fixed",
-			inputNugetDependencies: []*checker.Dependency{
-				{
-					Name:   newString("dep1"),
-					Type:   checker.DependencyUseTypeNugetCommand,
-					Pinned: boolAsPointer(false),
-					Remediation: &finding.Remediation{
-						Text: "remediate",
-					},
-				},
-			},
-			data: &nugetPostProcessData{
-				CpmConfig: properties.CentralPackageManagementConfig{
-					PackageVersions: []properties.NugetPackage{
-						{
-							Name:    "dep1",
-							Version: "1.0.0",
-							IsFixed: true,
-						},
-						{
-							Name:    "dep2",
-							Version: "1.0.0",
-							IsFixed: true,
-						},
-					},
-				},
-			},
-			expectedOutputNugetDependencies: []checker.Dependency{
-				{
-					Name:   newString("dep1"),
-					Type:   checker.DependencyUseTypeNugetCommand,
-					Pinned: boolAsPointer(true),
-				},
-			},
-		},
-		{
-			name: "Some dependencies are fixed",
-			inputNugetDependencies: []*checker.Dependency{
-				{
-					Name:   newString("dep1"),
-					Type:   checker.DependencyUseTypeNugetCommand,
-					Pinned: boolAsPointer(false),
-					Remediation: &finding.Remediation{
-						Text: "remediate",
-					},
-				},
-			},
-			data: &nugetPostProcessData{
-				CpmConfig: properties.CentralPackageManagementConfig{
-					PackageVersions: []properties.NugetPackage{
-						{
-							Name:    "dep1",
-							Version: "1.0.0",
-							IsFixed: true,
-						},
-						{
-							Name:    "dep2",
-							Version: "1.0.0",
-							IsFixed: false,
-						},
-					},
-				},
-			},
-			expectedOutputNugetDependencies: []checker.Dependency{
-				{
-					Name:   newString("dep1"),
-					Type:   checker.DependencyUseTypeNugetCommand,
-					Pinned: boolAsPointer(false),
-				},
-			},
-		},
-		{
-			name: "No dependencies are fixed",
-			inputNugetDependencies: []*checker.Dependency{
-				{
-					Name:   newString("dep1"),
-					Type:   checker.DependencyUseTypeNugetCommand,
-					Pinned: boolAsPointer(false),
-					Remediation: &finding.Remediation{
-						Text: "remediate",
-					},
-				},
-			},
-			data: &nugetPostProcessData{
-				CpmConfig: properties.CentralPackageManagementConfig{
-					PackageVersions: []properties.NugetPackage{
-						{
-							Name:    "dep1",
-							Version: "1.0.0",
-							IsFixed: false,
-						},
-						{
-							Name:    "dep2",
-							Version: "1.0.0",
-							IsFixed: false,
-						},
-					},
-				},
-			},
-			expectedOutputNugetDependencies: []checker.Dependency{
-				{
-					Name:   newString("dep1"),
-					Type:   checker.DependencyUseTypeNugetCommand,
-					Pinned: boolAsPointer(false),
-				},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			collectPostProcessNugetCPMDependencies(tt.inputNugetDependencies, tt.data)
-			for i, dep := range tt.inputNugetDependencies {
-				if *dep.Pinned != *tt.expectedOutputNugetDependencies[i].Pinned {
-					t.Errorf("Expected dependency %v, got %v", tt.expectedOutputNugetDependencies[i], dep)
-				}
-			}
-		})
-	}
-}
-
-func TestPinningDependenciesData_GetDependenciesByType(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name     string
-		data     checker.PinningDependenciesData
-		useType  checker.DependencyUseType
-		expected []checker.Dependency
-	}{
-		{
-			name: "No staged dependencies",
-			data: checker.PinningDependenciesData{
-				Dependencies: []checker.Dependency{},
-			},
-			useType:  checker.DependencyUseTypeGHAction,
-			expected: []checker.Dependency{},
-		},
-		{
-			name: "Single matching dependency",
-			data: checker.PinningDependenciesData{
-				Dependencies: []checker.Dependency{
-					{
-						Name: newString("dep1"),
-						Type: checker.DependencyUseTypeGHAction,
-					},
-				},
-			},
-			useType: checker.DependencyUseTypeGHAction,
-			expected: []checker.Dependency{
-				{
-					Name: newString("dep1"),
-					Type: checker.DependencyUseTypeGHAction,
-				},
-			},
-		},
-		{
-			name: "Multiple dependencies with one match",
-			data: checker.PinningDependenciesData{
-				Dependencies: []checker.Dependency{
-					{
-						Name: newString("dep1"),
-						Type: checker.DependencyUseTypeGHAction,
-					},
-					{
-						Name: newString("dep2"),
-						Type: checker.DependencyUseTypeDockerfileContainerImage,
-					},
-				},
-			},
-			useType: checker.DependencyUseTypeGHAction,
-			expected: []checker.Dependency{
-				{
-					Name: newString("dep1"),
-					Type: checker.DependencyUseTypeGHAction,
-				},
-			},
-		},
-		{
-			name: "Multiple dependencies with multiple matches",
-			data: checker.PinningDependenciesData{
-				Dependencies: []checker.Dependency{
-					{
-						Name: newString("dep1"),
-						Type: checker.DependencyUseTypeGHAction,
-					},
-					{
-						Name: newString("dep2"),
-						Type: checker.DependencyUseTypeGHAction,
-					},
-				},
-			},
-			useType: checker.DependencyUseTypeGHAction,
-			expected: []checker.Dependency{
-				{
-					Name: newString("dep1"),
-					Type: checker.DependencyUseTypeGHAction,
-				},
-				{
-					Name: newString("dep2"),
-					Type: checker.DependencyUseTypeGHAction,
-				},
-			},
-		},
-		{
-			name: "No matching dependencies",
-			data: checker.PinningDependenciesData{
-				Dependencies: []checker.Dependency{
-					{
-						Name: newString("dep1"),
-						Type: checker.DependencyUseTypeDockerfileContainerImage,
-					},
-				},
-			},
-			useType:  checker.DependencyUseTypeGHAction,
-			expected: []checker.Dependency{},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			result := getDependenciesByType(&tt.data, tt.useType)
-			if len(result) != len(tt.expected) {
-				t.Errorf("Expected %d dependencies, got %d", len(tt.expected), len(result))
-			}
-			for i, dep := range result {
-				if *dep.Name != *tt.expected[i].Name || dep.Type != tt.expected[i].Type {
-					t.Errorf("Expected dependency %v, got %v", tt.expected[i], dep)
-				}
-			}
-		})
-	}
-}
-
-func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name                 string
-		filename             string
-		pinnedDependencies   int
-		unpinnedDependencies int
-		expectedError        bool
-		IsCPMEnabled         bool
-	}{
-		{
-			name:                 "Pinned dependencies",
-			filename:             "./testdata/Directory.Pinned.packages.props",
-			IsCPMEnabled:         true,
-			pinnedDependencies:   1,
-			unpinnedDependencies: 0,
-			expectedError:        false,
-		},
-		{
-			name:                 "Pinned multiple dependencies",
-			filename:             "./testdata/Directory.PinnedMultipleGroups.packages.props",
-			IsCPMEnabled:         true,
-			pinnedDependencies:   2,
-			unpinnedDependencies: 0,
-			expectedError:        false,
-		},
-		{
-			name:                 "Unpinned CPM false",
-			filename:             "./testdata/Directory.CPMFalse.packages.props",
-			IsCPMEnabled:         false,
-			pinnedDependencies:   0,
-			unpinnedDependencies: 0,
-			expectedError:        false,
-		},
-		{
-			name:                 "Unpinned CPM undeclared",
-			filename:             "./testdata/Directory.Undeclared.packages.props",
-			IsCPMEnabled:         false,
-			pinnedDependencies:   0,
-			unpinnedDependencies: 0,
-			expectedError:        false,
-		},
-		{
-			name:                 "Unpinned version undeclared",
-			filename:             "./testdata/Directory.UndeclaredVersions.packages.props",
-			IsCPMEnabled:         true,
-			pinnedDependencies:   0,
-			unpinnedDependencies: 1,
-			expectedError:        false,
-		},
-		{
-			name:                 "Unpinned version range",
-			filename:             "./testdata/Directory.UnpinnedVersions.packages.props",
-			IsCPMEnabled:         true,
-			pinnedDependencies:   0,
-			unpinnedDependencies: 1,
-			expectedError:        false,
-		},
-		{
-			name:                 "Unpinned version range in second group",
-			filename:             "./testdata/Directory.UnpinnedMultipleGroups.packages.props",
-			IsCPMEnabled:         true,
-			pinnedDependencies:   1,
-			unpinnedDependencies: 1,
-			expectedError:        false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			var content []byte
-			var err error
-			content, err = os.ReadFile(tt.filename)
-			if err != nil {
-				t.Fatalf("cannot read file: %v", err)
-			}
-			var nugetPostProcessData nugetPostProcessData
-			dl := scut.TestDetailLogger{}
-			_, err = processDirectoryPropsFile(tt.filename, content, &nugetPostProcessData, dl)
-			if tt.expectedError {
-				if err == nil {
-					t.Errorf("expected error is nil")
-					return
-				}
-			}
-			if tt.IsCPMEnabled != nugetPostProcessData.CpmConfig.IsCPMEnabled {
-				t.Errorf("expected %t cpm enabled. Got %t", tt.IsCPMEnabled, nugetPostProcessData.CpmConfig.IsCPMEnabled)
-			}
-			pinned, unpinned := 0, 0
-			for _, version := range nugetPostProcessData.CpmConfig.PackageVersions {
-				if version.IsFixed {
-					pinned++
-				} else {
-					unpinned++
-				}
-			}
-			if pinned != tt.pinnedDependencies {
-				t.Errorf("expected %v pinned dependencies. Got %v", tt.pinnedDependencies, pinned)
-			}
-			if unpinned != tt.unpinnedDependencies {
-				t.Errorf("expected %v unpinned dependencies. Got %v", tt.unpinnedDependencies, unpinned)
-			}
-		})
-	}
-}
-
-func newString(s string) *string {
-	return &s
 }

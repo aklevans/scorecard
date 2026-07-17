@@ -31,8 +31,13 @@ import (
 
 func createTestRepo(t *testing.T) (path string) {
 	t.Helper()
-	dir := t.TempDir()
-
+	dir, err := os.MkdirTemp("", "testrepo")
+	if err != nil {
+		t.Fatalf("Failed to create temporary directory: %v", err)
+	}
+	t.Cleanup(func() {
+		os.RemoveAll(dir)
+	})
 	r, err := gitV5.PlainInit(dir, false)
 	if err != nil {
 		t.Fatalf("Failed to initialize git repo: %v", err)
@@ -94,6 +99,7 @@ func TestInitRepo(t *testing.T) {
 	repoPath := createTestRepo(t)
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			uri := repoPath
@@ -208,6 +214,7 @@ func TestSearch(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			client := &Client{}

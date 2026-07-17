@@ -5,18 +5,11 @@ updates:
     - "/"
     - "/tools"
   schedule:
-    interval: weekly
+    interval: daily
   rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
-  groups:
-    gomod:
-      patterns:
-        - "*"
-      exclude-patterns:
-        - "github.com/rhysd/actionlint" # has had breaking changes in the past
-        - "github.com/google/osv-scanner" # influences Vulnerabilities check and may require go directive fixes
-        - "github.com/golangci/golangci-lint" # require linter fixes before merge
+  open-pull-requests-limit: 3
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:

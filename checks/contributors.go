@@ -27,8 +27,13 @@ import (
 const CheckContributors = "Contributors"
 
 //nolint:gochecknoinits
+
 func init() {
-	if err := registerCheck(CheckContributors, Contributors, nil); err != nil {
+	//for new functionality with CodeQL
+	supportedRequestTypes := []checker.RequestType{
+		checker.CommitBased,
+	}
+	if err := registerCheck(CheckContributors, Contributors, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}

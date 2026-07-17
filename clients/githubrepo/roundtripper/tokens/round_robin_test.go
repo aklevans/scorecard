@@ -35,6 +35,7 @@ func TestNext(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.releaseID != nil {
 				rr.Release(*tt.releaseID)

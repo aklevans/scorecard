@@ -36,6 +36,5 @@ type SearchResult struct {
 
 // SearchCommitsOptions represents the parameters in the search commit query.
 type SearchCommitsOptions struct {
-	Author        string
-	CommitterDate string
+	Author string
 }

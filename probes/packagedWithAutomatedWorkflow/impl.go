@@ -43,6 +43,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	r := raw.PackagingResults
 	var findings []finding.Finding
 	for _, p := range r.Packages {
+		p := p
 		if p.Msg != nil {
 			continue
 		}

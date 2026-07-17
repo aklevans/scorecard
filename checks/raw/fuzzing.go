@@ -56,14 +56,6 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		Desc: asPointer(
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
 	},
-	// Fuzz patterns for Erlang based on property-based testing.
-	clients.Erlang: {
-		filePatterns: []string{"*.erl", "*.hrl"},
-		// Look for direct imports of QuickCheck or Proper,
-		funcPattern: `-include_lib\("(eqc|proper)/include/(eqc|proper).hrl"\)\.`,
-		Name:        fuzzers.PropertyBasedErlang,
-		Desc:        propertyBasedDescription("Erlang"),
-	},
 	// Fuzz patterns for Haskell based on property-based testing.
 	//
 	// Based on the import of one of these packages:
@@ -84,24 +76,6 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		funcPattern: `import\s+(qualified\s+)?Test\.((Hspec|Tasty)\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
 		Name:        fuzzers.PropertyBasedHaskell,
 		Desc:        propertyBasedDescription("Haskell"),
-	},
-
-	// Fuzz patterns for Elixir based on property-based testing.
-	clients.Elixir: {
-		filePatterns: []string{"*.ex", "*.exs"},
-		// Look for direct imports of PropCheck, and StreamData.
-		funcPattern: `use\s+(PropCheck|ExUnitProperties)`,
-		Name:        fuzzers.PropertyBasedElixir,
-		Desc:        propertyBasedDescription("Elixir"),
-	},
-
-	// Fuzz patterns for Gleam based on property-based testing.
-	clients.Gleam: {
-		filePatterns: []string{"*.gleam"},
-		// Look for direct imports of PropCheck, and StreamData.
-		funcPattern: `import\s+qcheck`, // Gleam library
-		Name:        fuzzers.PropertyBasedGleam,
-		Desc:        propertyBasedDescription("Gleam"),
 	},
 	// Fuzz patterns for JavaScript and TypeScript based on property-based testing.
 	//
@@ -338,8 +312,6 @@ func getProminentLanguages(langs []clients.Language) []clients.LanguageName {
 	numLangs := len(langs)
 	if numLangs == 0 {
 		return nil
-	} else if len(langs) == 1 && langs[0].Name == clients.All {
-		return getAllLanguages()
 	}
 	totalLoC := 0
 	// Use a map to record languages and their lines of code to drop potential duplicates.
@@ -361,14 +333,6 @@ func getProminentLanguages(langs []clients.Language) []clients.LanguageName {
 		}
 	}
 	return ret
-}
-
-func getAllLanguages() []clients.LanguageName {
-	allLanguages := make([]clients.LanguageName, 0, len(languageFuzzSpecs))
-	for l := range languageFuzzSpecs {
-		allLanguages = append(allLanguages, l)
-	}
-	return allLanguages
 }
 
 func propertyBasedDescription(language string) *string {
