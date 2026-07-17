@@ -2,8 +2,8 @@
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ossf/scorecard/badge)](https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/5621/badge)](https://www.bestpractices.dev/projects/5621)
-[![build](https://github.com/ossf/scorecard/actions/workflows/main.yml/badge.svg)](https://github.com/ossf/scorecard/actions/workflows/main.yml)
-[![CodeQL](https://github.com/ossf/scorecard/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ossf/scorecard/actions/workflows/codeql-analysis.yml)
+![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
+![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ossf/scorecard/v4.svg)](https://pkg.go.dev/github.com/ossf/scorecard/v4)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ossf/scorecard/v4)](https://goreportcard.com/report/github.com/ossf/scorecard/v4)
 [![codecov](https://codecov.io/gh/ossf/scorecard/branch/main/graph/badge.svg?token=PMJ6NAN9J3)](https://codecov.io/gh/ossf/scorecard)
@@ -82,36 +82,6 @@ The inspiration for Scorecard’s logo:
 1.  Use this data to proactively improve the security posture of the critical
     projects the world depends on.
 
-1. Act as a measurement tool for existing policies
-
-    If OSS consumers require certain behaviors from their dependencies,
-    Scorecard can be used to measure those. With the V5 release, we see
-    Structured Results as a way of doing this if there is a supported analysis.
-    Instead of relying on an aggregate score of X/10, or a Maintained score of
-    Y/10, an OSS consumer may want to ensure the repo they're depending on
-    isn't archived (which is covered by the `archived` probe). The OpenSSF
-    takes this approach with its own Security Baseline for projects.
-
-#### Project Non-Goals
-
-1.  To be a definitive report or requirement that all projects should follow.
-
-    Scorecard is not intended to be a one-size-fits-all solution. Every step of
-    making our results is opinionated: what checks get included or excluded,
-    the importance of each check, and how scores are calculated. The checks
-    themselves are heuristics; there are false positives and false negatives.
-
-    Whether it’s due to applicability, or feasibility, or a matter of opinion,
-    what's included or excluded from Scorecard results leads to a lot of
-    discussion. It’s impossible to create a Scorecard that satisfies everyone
-    because different audiences will care about different subsets of behavior.
-
-    Aggregate scores in particular tells you nothing about what individual
-    behaviors a repository is or is not doing. Many check scores are aggregated
-    into a single score, and there’s multiple ways of arriving at the same
-    score. These scores change as we add new heuristics or refine the existing
-    ones.
-
 ### Prominent Scorecard Users
 
 Scorecard has been run on thousands of projects to monitor and track security
@@ -125,8 +95,8 @@ metrics. Prominent projects that use Scorecard include:
 
 ### View a Project's Score
 
-To see scores for projects regularly scanned by Scorecard, navigate to the [webviewer](https://scorecard.dev/viewer/?uri=). You can also replace the placeholder text (platform, user/org, and repository name) in the following template link to generate a custom Scorecard link for a repo:
-`https://scorecard.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>`
+To see scores for projects regularly scanned by Scorecard, navigate to the webviewer, replacing the placeholder text with the platform, user/org, and repository name:
+https://scorecard.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>.
 
 For example:
  - [https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard](https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard)
@@ -449,11 +419,12 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
-##### Showing Maintainers Annotations
+##### Showing Maintainers Annotations (Experimental)
 
-**Maintainer Annotations** let maintainers add context to display alongside Scorecard check results. Annotations can provide users additional information when Scorecard has an incomplete assessment of a project's security practices. To see the maintainers annotations for each check, use the `--show-annotations` option.
+To see the maintainers annotations for each check, use the `--show-annotations` option.
 
-For more information on available annotations or how to make annotations, see [the configuration doc](config/README.md).
+For more information on how to configure annotations or what are the available annotations, see [the configuration doc](config/README.md).
+
 
 ##### Using a GitLab Repository
 

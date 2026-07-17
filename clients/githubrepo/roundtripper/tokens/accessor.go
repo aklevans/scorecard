@@ -16,7 +16,6 @@
 package tokens
 
 import (
-	"log"
 	"os"
 	"strings"
 )
@@ -34,33 +33,13 @@ type TokenAccessor interface {
 	Release(uint64)
 }
 
-var logDuplicateTokenWarning = func(firstName string, clashingName string) {
-	var stringBuilder strings.Builder
-	stringBuilder.WriteString("Warning: PATs stored in env variables ")
-	stringBuilder.WriteString(firstName)
-	stringBuilder.WriteString(" and ")
-	stringBuilder.WriteString(clashingName)
-	stringBuilder.WriteString(" differ. Scorecard will use the former.")
-	log.Println(stringBuilder.String())
-}
-
 func readGitHubTokens() (string, bool) {
-	var firstName, firstToken string
 	for _, name := range githubAuthTokenEnvVars {
 		if token, exists := os.LookupEnv(name); exists && token != "" {
-			if firstName == "" {
-				firstName = name
-				firstToken = token
-			} else if token != firstToken {
-				logDuplicateTokenWarning(firstName, name)
-			}
+			return token, exists
 		}
 	}
-	if firstName == "" {
-		return "", false
-	} else {
-		return firstToken, true
-	}
+	return "", false
 }
 
 // MakeTokenAccessor is a factory function of TokenAccessor.

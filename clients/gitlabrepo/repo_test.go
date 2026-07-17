@@ -98,6 +98,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure blow
 		if tt.flagRequired && os.Getenv("TEST_GITLAB_EXTERNAL") == "" {
 			continue
 		}
@@ -181,6 +182,7 @@ func TestRepoURL_MakeGitLabRepo(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // uses t.Setenv, can't be parallelized
 func TestRepoURL_parse_GL_HOST(t *testing.T) {
 	tests := []struct {
 		name                 string

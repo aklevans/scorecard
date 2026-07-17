@@ -17,8 +17,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"slices"
-	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -54,6 +55,7 @@ func Test_getRepoCommitHash(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -99,6 +101,7 @@ func Test_getRepoCommitHashLocal(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			logger := log.NewLogger(log.DebugLevel)
@@ -160,6 +163,7 @@ func TestRun(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -238,7 +242,6 @@ func TestRun_WithProbes(t *testing.T) {
 							"repository.name":          "ossf/scorecard",
 							"repository.sha1":          "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
 							"repository.uri":           "github.com/ossf/scorecard",
-							"localPath":                "test_path",
 						},
 					},
 				},
@@ -271,13 +274,11 @@ func TestRun_WithProbes(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
-			mockRepoClient.EXPECT().LocalPath().DoAndReturn(func() (string, error) {
-				return "test_path", nil
-			}).AnyTimes()
 			repo := mockrepo.NewMockRepo(ctrl)
 
 			repo.EXPECT().URI().Return(tt.args.uri).AnyTimes()
@@ -361,21 +362,9 @@ func Test_findConfigFile(t *testing.T) {
 			wantFound: true,
 		},
 		{
-			desc:      "scorecard.yaml exists",
-			locs:      []string{"scorecard.yaml"},
-			found:     "scorecard.yaml",
-			wantFound: true,
-		},
-		{
 			desc:      ".scorecard.yml exists",
 			locs:      []string{".scorecard.yml"},
 			found:     ".scorecard.yml",
-			wantFound: true,
-		},
-		{
-			desc:      ".scorecard.yaml exists",
-			locs:      []string{".scorecard.yaml"},
-			found:     ".scorecard.yaml",
 			wantFound: true,
 		},
 		{
@@ -385,25 +374,20 @@ func Test_findConfigFile(t *testing.T) {
 			wantFound: true,
 		},
 		{
-			desc:      ".github/scorecard.yaml exists",
-			locs:      []string{".github/scorecard.yaml"},
-			found:     ".github/scorecard.yaml",
-			wantFound: true,
-		},
-		{
 			desc:      "multiple configs exist",
-			locs:      []string{"scorecard.yml", ".github/scorecard.yaml"},
+			locs:      []string{"scorecard.yml", ".github/scorecard.yml"},
 			found:     "scorecard.yml",
 			wantFound: true,
 		},
 		{
-			desc:      "no config exists",
+			desc:      "no config exists so shouldn't find one",
 			locs:      []string{},
 			wantFound: false,
 		},
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.desc, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -412,7 +396,12 @@ func Test_findConfigFile(t *testing.T) {
 				if !slices.Contains(tt.locs, filename) {
 					return nil, fmt.Errorf("os.Open: %s", filename)
 				}
-				return io.NopCloser(strings.NewReader("test config")), nil
+				fullPath := filepath.Join("./testdata", filename)
+				f, err := os.Open(fullPath)
+				if err != nil {
+					return nil, fmt.Errorf("os.Open: %w", err)
+				}
+				return f, nil
 			})
 			r, path := findConfigFile(mockRepoClient)
 

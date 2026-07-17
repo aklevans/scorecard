@@ -30,7 +30,7 @@ const HeadSHA = "HEAD"
 
 // RepoClient interface is used by Scorecard checks to access a repo.
 type RepoClient interface {
-	InitRepo(repo Repo, commitSHA string, commitDepth int, commitDate string) error
+	InitRepo(repo Repo, commitSHA string, commitDepth int) error
 	URI() string
 	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)

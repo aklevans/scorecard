@@ -145,6 +145,7 @@ func TestYAMLParsing(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			byteValue, err := getByteValueFromFile(testcase.filename)
@@ -163,6 +164,7 @@ func TestYAMLParsing(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // Since os.Setenv is used.
 func TestGetStringConfigValue(t *testing.T) {
 	testcases := []struct {
 		expectedErr error
@@ -196,10 +198,11 @@ func TestGetStringConfigValue(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			os.Unsetenv(testEnvVar)
 			if testcase.setEnv {
-				t.Setenv(testEnvVar, testcase.envVal)
+				os.Setenv(testEnvVar, testcase.envVal)
 			}
 
 			byteValue, err := getByteValueFromFile(testcase.filename)
@@ -223,6 +226,7 @@ func TestGetStringConfigValue(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // Since os.Setenv is used.
 func TestGetIntConfigValue(t *testing.T) {
 	testcases := []struct {
 		expectedErr error
@@ -249,10 +253,11 @@ func TestGetIntConfigValue(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			os.Unsetenv(testEnvVar)
 			if testcase.setEnv {
-				t.Setenv(testEnvVar, testcase.envVal)
+				os.Setenv(testEnvVar, testcase.envVal)
 			}
 
 			byteValue, err := getByteValueFromFile(testcase.filename)
@@ -442,6 +447,7 @@ func TestInputBucket(t *testing.T) {
 		},
 	}
 	for _, testcase := range tests {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			os.Unsetenv(testcase.envVar)
 			got, err := testcase.f()
@@ -477,6 +483,7 @@ func TestEnvVarName(t *testing.T) {
 		},
 	}
 	for _, testcase := range tests {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			got := envVarName(testcase.mapName, testcase.subKey)
@@ -510,6 +517,7 @@ func TestGetAdditionalParams(t *testing.T) {
 		},
 	}
 	for _, testcase := range tests {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := GetAdditionalParams(testcase.mapName)

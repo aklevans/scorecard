@@ -128,11 +128,12 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := CreateDockerfilePinningRemediation(&tt.dep, stubDigester{})
 			if !cmp.Equal(got, tt.expected) {
-				t.Error(cmp.Diff(got, tt.expected))
+				t.Errorf(cmp.Diff(got, tt.expected))
 			}
 		})
 	}
@@ -175,6 +176,7 @@ func TestCreateWorkflowPinningRemediation(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := RemediationMetadata{
@@ -183,7 +185,7 @@ func TestCreateWorkflowPinningRemediation(t *testing.T) {
 			}
 			got := r.CreateWorkflowPinningRemediation(tt.filepath)
 			if !cmp.Equal(got, tt.expected) {
-				t.Error(cmp.Diff(got, tt.expected))
+				t.Errorf(cmp.Diff(got, tt.expected))
 			}
 		})
 	}

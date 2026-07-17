@@ -68,6 +68,7 @@ func TestGitlabPackagingYamlCheck(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -122,6 +123,7 @@ func TestGitlabPackagingPackager(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 

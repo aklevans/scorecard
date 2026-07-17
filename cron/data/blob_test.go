@@ -44,6 +44,7 @@ func TestGetBlobFilename(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			datetime, err := time.Parse(inputTimeFormat, testcase.inputTime)
@@ -97,6 +98,7 @@ func TestParseBlobFilename(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			datetime, filename, err := ParseBlobFilename(testcase.input)
@@ -159,6 +161,7 @@ func TestBlobKeysPrefix(t *testing.T) {
 	ctx := context.Background()
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			got, err := blobKeysPrefix(ctx, bucket, testcase.prefix)
 			if err != nil {

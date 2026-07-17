@@ -49,6 +49,7 @@ func TestCopyBoolPtr(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			copyBoolPtr(tt.src, tt.dest)
@@ -98,6 +99,7 @@ func TestCopyInt32Ptr(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			copyInt32Ptr(tt.src, tt.dest)
@@ -147,6 +149,7 @@ func TestCopyStringPtr(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			copyStringPtr(tt.src, tt.dest)
@@ -194,6 +197,7 @@ func TestCopyTimePtr(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			copyTimePtr(tt.src, tt.dest)
@@ -232,6 +236,7 @@ func TestCopyStringSlice(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			copyStringSlice(tt.src, &tt.dest)
@@ -274,6 +279,7 @@ func TestCopyRepoAssociationPtr(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			copyRepoAssociationPtr(tt.src, tt.dest)

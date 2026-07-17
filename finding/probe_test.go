@@ -104,12 +104,13 @@ func Test_probeFromBytes(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			content, err := os.ReadFile(tt.path)
 			if err != nil {
-				t.Fatal(err.Error())
+				t.Fatalf(err.Error())
 			}
 
 			r, err := probeFromBytes(content, tt.id)
