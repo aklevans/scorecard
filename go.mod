@@ -223,3 +223,5 @@ require (
 	google.golang.org/grpc v1.75.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
+
+replace github.com/google/go-github/v53 => ../custom-go-github
