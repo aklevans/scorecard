@@ -67,6 +67,7 @@ func Test_checkOSSFuzz(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -129,6 +130,7 @@ func Test_checkCFLite(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -206,6 +208,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			langSpecs, ok := languageFuzzSpecs[tt.lang]
@@ -256,42 +259,6 @@ func Test_checkFuzzFunc(t *testing.T) {
 				},
 			},
 			fileContent: "func TestFoo (t *testing.T)",
-		},
-		{
-			name:     "Erlang QuickCheck",
-			want:     true,
-			fileName: []string{"erlang-eqc.hs"},
-			langs: []clients.Language{
-				{
-					Name:     clients.Erlang,
-					NumLines: 50,
-				},
-			},
-			fileContent: "-include_lib(\"eqc/include/eqc.hrl\").",
-		},
-		{
-			name:     "Erlang Proper",
-			want:     true,
-			fileName: []string{"erlang-proper.hs"},
-			langs: []clients.Language{
-				{
-					Name:     clients.Erlang,
-					NumLines: 50,
-				},
-			},
-			fileContent: "-include_lib(\"proper/include/proper.hrl\").",
-		},
-		{
-			name:     "Erlang with no property-based testing",
-			want:     false,
-			fileName: []string{"erlang-ct.erl"},
-			langs: []clients.Language{
-				{
-					Name:     clients.Erlang,
-					NumLines: 50,
-				},
-			},
-			fileContent: "-include_lib(\"common_test/include/ct.hrl\").",
 		},
 		{
 			name:     "Haskell QuickCheck",
@@ -389,66 +356,6 @@ func Test_checkFuzzFunc(t *testing.T) {
 				},
 			},
 			fileContent: "import Test.Hspec",
-		},
-		{
-			name:     "Elixir QuickCheck through PropCheck",
-			want:     true,
-			fileName: []string{"Test.exs"},
-			langs: []clients.Language{
-				{
-					Name:     clients.Elixir,
-					NumLines: 50,
-				},
-			},
-			fileContent: "use PropCheck, default_opts: &PropCheck.TestHelpers.config/0",
-		},
-		{
-			name:     "Elixir QuickCheck through StreamData",
-			want:     true,
-			fileName: []string{"Test.exs"},
-			langs: []clients.Language{
-				{
-					Name:     clients.Elixir,
-					NumLines: 50,
-				},
-			},
-			fileContent: "use ExUnitProperties",
-		},
-		{
-			name:     "Elixir with no property-based testing",
-			want:     false,
-			fileName: []string{"NoPropTest.exs"},
-			langs: []clients.Language{
-				{
-					Name:     clients.Elixir,
-					NumLines: 50,
-				},
-			},
-			fileContent: "use ExUnit.Case, async: true",
-		},
-		{
-			name:     "Gleam with no property-based testing",
-			want:     false,
-			fileName: []string{"test.gleam"},
-			langs: []clients.Language{
-				{
-					Name:     clients.Gleam,
-					NumLines: 50,
-				},
-			},
-			fileContent: "import gleeunit",
-		},
-		{
-			name:     "Gleam QCheck",
-			want:     true,
-			fileName: []string{"gleam-qcheck.gleam"},
-			langs: []clients.Language{
-				{
-					Name:     clients.Gleam,
-					NumLines: 50,
-				},
-			},
-			fileContent: "import qcheck",
 		},
 		{
 			name:     "JavaScript fast-check via require",
@@ -574,6 +481,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -674,6 +582,7 @@ func Test_getProminentLanguages(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := getProminentLanguages(tt.languages)

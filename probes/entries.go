@@ -63,7 +63,6 @@ import (
 	"github.com/ossf/scorecard/v5/probes/securityPolicyPresent"
 	"github.com/ossf/scorecard/v5/probes/testsRunInCI"
 	"github.com/ossf/scorecard/v5/probes/topLevelPermissions"
-	"github.com/ossf/scorecard/v5/probes/unsafeblock"
 	"github.com/ossf/scorecard/v5/probes/webhooksUseSecrets"
 )
 
@@ -174,9 +173,7 @@ var (
 	}
 
 	// Probes which don't use pre-computed raw data but rather collect it themselves.
-	Independent = []IndependentProbeImpl{
-		unsafeblock.Run,
-	}
+	Independent = []IndependentProbeImpl{}
 )
 
 //nolint:gochecknoinits

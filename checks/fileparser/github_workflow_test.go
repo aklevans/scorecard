@@ -118,6 +118,7 @@ func TestGitHubWorkflowShell(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := stdos.ReadFile(tt.filename)
@@ -131,7 +132,9 @@ func TestGitHubWorkflowShell(t *testing.T) {
 			}
 			actualShells := make([]string, 0)
 			for _, job := range workflow.Jobs {
+				job := job
 				for _, step := range job.Steps {
+					step := step
 					shell, err := GetShellForStep(step, job)
 					if err != nil {
 						t.Errorf("error getting shell: %v", err)
@@ -201,6 +204,7 @@ func TestIsWorkflowFile(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			p := strings.Replace(tt.args.pathfn, "./testdata/", "", 1)
@@ -244,6 +248,7 @@ func TestIsGitHubOwnedAction(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := IsGitHubOwnedAction(tt.args.actionName); got != tt.want {
@@ -289,6 +294,7 @@ func TestGetJobName(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := GetJobName(tt.args.job); got != tt.want {
@@ -333,6 +339,7 @@ func TestGetStepName(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := GetStepName(tt.args.step); got != tt.want {
@@ -379,6 +386,7 @@ func TestIsStepExecKind(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := IsStepExecKind(tt.args.step, tt.args.kind); got != tt.want {
@@ -425,6 +433,7 @@ func TestGetLineNumber(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := GetLineNumber(tt.args.pos); got != tt.want {
@@ -464,6 +473,7 @@ func TestFormatActionlintError(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if err := FormatActionlintError(tt.args.errs); (err != nil) != tt.wantErr {
@@ -537,6 +547,7 @@ func TestGetUses(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := GetUses(tt.args.step); !reflect.DeepEqual(got, tt.want) {
@@ -622,6 +633,7 @@ func Test_getWith(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := getWith(tt.args.step); !reflect.DeepEqual(got, tt.want) {
@@ -718,6 +730,7 @@ func Test_getRun(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := getRun(tt.args.step); !reflect.DeepEqual(got, tt.want) {
@@ -892,6 +905,7 @@ func Test_stepsMatch(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := stepsMatch(tt.args.stepToMatch, tt.args.step); got != tt.want {
@@ -996,6 +1010,7 @@ func TestIsPackagingWorkflow(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := stdos.ReadFile(tt.filename)

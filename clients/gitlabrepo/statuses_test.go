@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	gitlab "gitlab.com/gitlab-org/api/client-go"
+	"github.com/xanzy/go-gitlab"
 
 	"github.com/ossf/scorecard/v5/clients"
 )
@@ -53,6 +53,7 @@ func Test_listStatuses(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			httpClient := &http.Client{

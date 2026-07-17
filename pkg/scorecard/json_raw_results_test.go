@@ -52,6 +52,7 @@ func TestAsPointer(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			result := asPointer(tt.input)
@@ -128,6 +129,7 @@ func TestJsonScorecardRawResult_AddPackagingRawResults(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -207,6 +209,7 @@ func TestJsonScorecardRawResult_AddTokenPermissionsRawResults(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -272,6 +275,7 @@ func TestJsonScorecardRawResult_AddDependencyPinningRawResults(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -316,6 +320,7 @@ func TestJsonScorecardRawResult_AddDangerousWorkflowRawResults(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -355,6 +360,7 @@ func TestJsonScorecardRawResult_AddContributorsRawResults(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -396,6 +402,7 @@ func TestJsonScorecardRawResult_AddSignedReleasesRawResults(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -451,6 +458,7 @@ func TestJsonScorecardRawResult_AddMaintainedRawResults(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -566,6 +574,7 @@ func TestJsonScorecardRawResult_AddOssfBestPracticesRawResults(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -632,6 +641,7 @@ func TestJsonScorecardRawResult_AddCodeReviewRawResults(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1252,6 +1262,7 @@ func TestScorecardResult_AsRawJSON(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // capture range variable
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := &Result{
@@ -1269,7 +1280,7 @@ func TestScorecardResult_AsRawJSON(t *testing.T) {
 				return
 			}
 			if gotWriter := writer.String(); gotWriter != tt.wantWriter {
-				t.Error(cmp.Diff(gotWriter, tt.wantWriter))
+				t.Errorf(cmp.Diff(gotWriter, tt.wantWriter))
 			}
 		})
 	}
@@ -1326,6 +1337,7 @@ func TestAddBranchProtectionRawResults(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc // capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := &jsonScorecardRawResult{}

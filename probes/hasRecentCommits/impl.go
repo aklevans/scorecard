@@ -19,7 +19,6 @@ import (
 	"embed"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
@@ -50,7 +49,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
 
 	r := raw.MaintainedResults
-	threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
+	// threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
+	//set threshold based on commit date, not current date to approximate what the score would have been
+	// when the commit was made
+	threshold := r.DefaultBranchCommits[0].CommittedDate.AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
+
 	commitsWithinThreshold := 0
 
 	for i := range r.DefaultBranchCommits {

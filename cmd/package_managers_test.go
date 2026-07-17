@@ -130,6 +130,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -271,6 +272,7 @@ func Test_findGitRepositoryInPYPIResponse(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := findGitRepositoryInPYPIResponse("somePackage", strings.NewReader(tt.partialPYPIResponse))
@@ -435,6 +437,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -698,6 +701,7 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -757,6 +761,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)

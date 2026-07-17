@@ -479,6 +479,7 @@ func TestJSONOutput(t *testing.T) {
 		t.Fatalf("gojsonschema.NewSchema: %s", err)
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -574,6 +575,7 @@ func TestExperimentalFromJSON2_time(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, _, err := ExperimentalFromJSON2(strings.NewReader(tt.result))

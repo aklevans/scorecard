@@ -59,6 +59,7 @@ gitlab.com/owner4/repo4,meta4
 	}
 
 	for _, testcase := range testcases {
+		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer

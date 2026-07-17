@@ -58,7 +58,7 @@ type Client struct {
 	commitDepth    int
 }
 
-func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int, commitDate string) error {
+func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) error {
 	// cleanup previous state, if any.
 	c.Close()
 	c.listCommits = new(sync.Once)

@@ -163,7 +163,7 @@ func (c *client) URI() string {
 }
 
 // InitRepo implements RepoClient.InitRepo.
-func (c *client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int, commitDate string) error {
+func (c *client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	return fmt.Errorf("InitRepo: %w", clients.ErrUnsupportedFeature)
 }
 
