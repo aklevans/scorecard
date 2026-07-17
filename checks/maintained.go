@@ -47,7 +47,7 @@ func Maintained(c *checker.CheckRequest) checker.CheckResult {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
 	}
-
+	// printed data
 	// Set the raw results.
 	pRawResults := getRawResults(c)
 	pRawResults.MaintainedResults = rawData

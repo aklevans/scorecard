@@ -57,18 +57,29 @@ func (handler *contributorsHandler) init(ctx context.Context, repourl *Repo) {
 func (handler *contributorsHandler) setup(codeOwnerFile io.ReadCloser) error {
 	defer codeOwnerFile.Close()
 	handler.once.Do(func() {
-		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-			handler.errSetup = fmt.Errorf("%w: ListContributors only supported for HEAD queries", clients.ErrUnsupportedFeature)
-			return
-		}
+		var contribs []*github.Contributor
+		var err error
 
-		contributors := make(map[string]clients.User)
-		mapContributors(handler, contributors)
-		if handler.errSetup != nil {
-			return
-		}
-		mapCodeOwners(handler, codeOwnerFile, contributors)
-		if handler.errSetup != nil {
+		// if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+		// 	// gets contributors from graphQL for a given commit date
+		//order wont be the same bc using a map but values will be
+		// contribs, _, err = handler.ghClient.Repositories.ListContributorsGraphQL(
+		// 	handler.ctx, handler.repourl.owner, handler.repourl.repo, handler.repourl.commitSHA, &github.ListContributorsOptions{})
+		// sort.Slice(contribs, func(i, j int) bool {
+		// 	return *contribs[i].Contributions > *contribs[j].Contributions
+		// })
+		// contribs = contribs[0:30]
+
+		// } else {
+
+		contribs2, _, err := handler.ghClient.Repositories.ListContributors(
+			handler.ctx, handler.repourl.owner, handler.repourl.repo, &github.ListContributorsOptions{})
+
+		// }
+
+		contribs2 = contribs2
+		if err != nil {
+			handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
 			return
 		}
 

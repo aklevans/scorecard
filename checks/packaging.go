@@ -32,10 +32,15 @@ const CheckPackaging = "Packaging"
 
 //nolint:gochecknoinits
 func init() {
+<<<<<<< HEAD
 	supportedRequestTypes := []checker.RequestType{
 		checker.FileBased,
 	}
 	if err := registerCheck(CheckPackaging, Packaging, supportedRequestTypes); err != nil {
+=======
+
+	if err := registerCheck(CheckPackaging, Packaging, nil); err != nil {
+>>>>>>> origin/local-checks
 		// this should never happen
 		panic(err)
 	}
