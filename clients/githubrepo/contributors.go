@@ -17,7 +17,6 @@ package githubrepo
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/google/go-github/v53/github"
@@ -47,15 +46,24 @@ func (handler *contributorsHandler) setup() error {
 		var contribs []*github.Contributor
 		var err error
 
-		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-			// gets contributors from graphQL for a given commit date
-			contribs, _, err = handler.ghClient.Repositories.ListContributorsGraphQL(
-				handler.ctx, handler.repourl.owner, handler.repourl.repo, handler.repourl.commitSHA, &github.ListContributorsOptions{})
-		} else {
-			contribs, _, err = handler.ghClient.Repositories.ListContributors(
-				handler.ctx, handler.repourl.owner, handler.repourl.repo, &github.ListContributorsOptions{})
-		}
+		// if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+		// 	// gets contributors from graphQL for a given commit date
+		//order wont be the same bc using a map but values will be
+		// contribs, _, err = handler.ghClient.Repositories.ListContributorsGraphQL(
+		// 	handler.ctx, handler.repourl.owner, handler.repourl.repo, handler.repourl.commitSHA, &github.ListContributorsOptions{})
+		// sort.Slice(contribs, func(i, j int) bool {
+		// 	return *contribs[i].Contributions > *contribs[j].Contributions
+		// })
+		// contribs = contribs[0:30]
 
+		// } else {
+
+		contribs2, _, err := handler.ghClient.Repositories.ListContributors(
+			handler.ctx, handler.repourl.owner, handler.repourl.repo, &github.ListContributorsOptions{})
+
+		// }
+
+		contribs2 = contribs2
 		if err != nil {
 			handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
 			return

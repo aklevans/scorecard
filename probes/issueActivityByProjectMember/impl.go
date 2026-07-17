@@ -52,7 +52,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	numberOfIssuesUpdatedWithinThreshold := 0
 
 	// Look for activity in past `lookBackDays`.
-	threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
+	// set threshold based on commit date, not current date to approximate what the score would have been
+	// when the commit was made
+	threshold := r.DefaultBranchCommits[0].CommittedDate.AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
+	// threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 	var findings []finding.Finding
 	for i := range r.Issues {
 		if hasActivityByCollaboratorOrHigher(&r.Issues[i], threshold) {

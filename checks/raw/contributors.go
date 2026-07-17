@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/clients" 
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 // Contributors retrieves the raw data for the Contributors check.

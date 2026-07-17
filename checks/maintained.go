@@ -28,7 +28,12 @@ const CheckMaintained = "Maintained"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckMaintained, Maintained, nil); err != nil {
+
+	//allow commit based for new functionality
+	supportedRequestTypes := []checker.RequestType{
+		checker.CommitBased,
+	}
+	if err := registerCheck(CheckMaintained, Maintained, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}
@@ -41,7 +46,7 @@ func Maintained(c *checker.CheckRequest) checker.CheckResult {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
 	}
-
+	// printed data
 	// Set the raw results.
 	pRawResults := getRawResults(c)
 	pRawResults.MaintainedResults = rawData
