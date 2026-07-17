@@ -29,8 +29,8 @@ const CheckDangerousWorkflow = "Dangerous-Workflow"
 //nolint:gochecknoinits
 func init() {
 	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
 		checker.FileBased,
+		checker.CommitBased,
 	}
 	if err := registerCheck(CheckDangerousWorkflow, DangerousWorkflow, supportedRequestTypes); err != nil {
 		// this should never happen

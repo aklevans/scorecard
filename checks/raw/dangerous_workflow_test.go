@@ -78,6 +78,7 @@ func TestUntrustedContextVariables(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if r := containsUntrustedContextPattern(tt.variable); !r == tt.expected {
@@ -151,6 +152,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -169,7 +171,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			dw, err := DangerousWorkflow(req)
 
 			if !errCmp(err, tt.expected.err) {
-				t.Error(cmp.Diff(err, tt.expected.err, cmpopts.EquateErrors()))
+				t.Errorf(cmp.Diff(err, tt.expected.err, cmpopts.EquateErrors()))
 			}
 			if tt.expected.err != nil {
 				return
@@ -177,7 +179,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 
 			nb := len(dw.Workflows)
 			if nb != tt.expected.nb {
-				t.Error(cmp.Diff(nb, tt.expected.nb))
+				t.Errorf(cmp.Diff(nb, tt.expected.nb))
 			}
 		})
 	}

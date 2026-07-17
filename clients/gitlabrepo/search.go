@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"strings"
 
-	gitlab "gitlab.com/gitlab-org/api/client-go"
+	"github.com/xanzy/go-gitlab"
 
 	"github.com/ossf/scorecard/v5/clients"
 )

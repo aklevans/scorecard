@@ -74,7 +74,7 @@ Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the reposito
 
 ## codeApproved
 
-**Lifecycle**: experimental
+**Lifecycle**: stable
 
 **Description**: Check that all recent changesets have been approved by someone who is not the author of the changeset.
 
@@ -194,7 +194,7 @@ If the probe finds no binary files, it returns a single OutcomeFalse.
 
 **Implementation**: The probe analyzes the repository's workflows for known dangerous patterns.
 
-**Outcomes**: The probe returns one finding with OutcomeTrue for each dangerous script injection pattern detected. Each finding may include a suggested patch to fix the respective script injection.
+**Outcomes**: The probe returns one finding with OutcomeTrue for each dangerous script injection pattern detected.
 If no dangerous patterns are found, the probe returns one finding with OutcomeFalse.
 
 
@@ -549,7 +549,7 @@ If the project does not use a SAST tool, or uses a tool we dont currently detect
 
 ## sastToolRunsOnAllCommits
 
-**Lifecycle**: experimental
+**Lifecycle**: stable
 
 **Description**: Checks that a SAST tool runs on all commits in the projects CI.
 
@@ -647,20 +647,6 @@ The probe returns a single OutcomeNotApplicable if the projects has had no pull 
 
 **Outcomes**: The probe returns 1 false outcome per workflow with "write" permissions at the "top" level.
 The probe returns 1 true outcome if the project has no workflows "write" permissions a the "top" level.
-
-
-## unsafeblock
-
-**Lifecycle**: experimental
-
-**Description**: Flags unsafe blocks of code in this project.
-
-**Motivation**: Memory safety in software should be considered a continuum, rather than being binary.  While some languages and tools are memory safe by default, it may still be possible, and sometimes unavoidable, to write unsafe code in them. Unsafe code allow developers to bypass normal safety checks and directly manipulate memory.
-
-**Implementation**: The probe is ecosystem-specific and will surface non memory safe practices in the project by identifying unsafe code blocks. Unsafe code blocks are supported in rust, go, c#, and swift, but only go and c# are supported by this probe at this time: - for go the probe will look for the use of the `unsafe` include directive. - for c# the probe will look at the csproj and identify the use of the `AllowUnsafeBlocks` property.
-
-**Outcomes**: For supported ecosystem, the probe returns OutcomeTrue per unsafe block.
-If the project has no unsafe blocks, the probe returns OutcomeFalse.
 
 
 ## webhooksUseSecrets

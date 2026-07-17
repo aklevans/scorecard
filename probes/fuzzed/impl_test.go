@@ -87,6 +87,7 @@ func Test_Run(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			findings, s, err := Run(tt.raw)
@@ -166,6 +167,7 @@ func TestRun_Detailed(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			findings, _, err := Run(tt.raw)

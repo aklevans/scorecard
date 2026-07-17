@@ -156,15 +156,6 @@ func FormatResults(
 			LogLevel:    log.ParseLevel(opts.LogLevel),
 		}
 		err = results.AsJSON2(output, doc, o)
-	case options.FormatInToto:
-		o := &AsInTotoResultOption{
-			AsJSON2ResultOption: AsJSON2ResultOption{
-				Details:     opts.ShowDetails,
-				Annotations: opts.ShowAnnotations,
-				LogLevel:    log.ParseLevel(opts.LogLevel),
-			},
-		}
-		err = results.AsInToto(output, doc, o)
 	case options.FormatProbe:
 		var opts *ProbeResultOption
 		err = results.AsProbe(output, opts)
@@ -411,6 +402,7 @@ func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret
 			return fmt.Errorf("getting probe %q: %w", probeName, err)
 		}
 		for _, checkName := range p.RequiredRawData {
+			checkName := checkName
 			if !seen[checkName] {
 				err := assignRawData(checkName, request, ret)
 				if err != nil {

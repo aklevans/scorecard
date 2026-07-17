@@ -119,6 +119,8 @@ func TestGetRepoURLs(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
+		testcase := testcase
+
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			testFile, err := os.OpenFile(testcase.filename, os.O_RDONLY, 0o644)

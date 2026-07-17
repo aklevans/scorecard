@@ -49,6 +49,7 @@ func TestOptions_AddFlags(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			cmd := &cobra.Command{}
@@ -135,6 +136,7 @@ func TestOptions_AddFlags_ChecksToRun(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			e := []string{}
@@ -167,6 +169,7 @@ func TestOptions_AddFlags_Format(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			cmd := &cobra.Command{}
@@ -198,6 +201,7 @@ func TestOptions_AddFlags_Annotations(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			cmd := &cobra.Command{}
