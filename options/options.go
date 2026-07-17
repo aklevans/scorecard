@@ -41,12 +41,14 @@ type Options struct {
 	Nuget           string
 	PolicyFile      string
 	ResultsFile     string
+	FileMode        string
 	ChecksToRun     []string
 	ProbesToRun     []string
 	Metadata        []string
 	CommitDepth     int
 	ShowDetails     bool
 	ShowAnnotations bool
+	CommitDate      string
 	// Feature flags.
 	EnableSarif                 bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6           bool `env:"SCORECARD_V6"`
@@ -55,20 +57,14 @@ type Options struct {
 
 // New creates a new instance of `Options`.
 func New() *Options {
-	opts := &Options{}
+	opts := &Options{
+		Commit:   DefaultCommit,
+		Format:   FormatDefault,
+		LogLevel: DefaultLogLevel,
+		FileMode: FileModeArchive,
+	}
 	if err := env.Parse(opts); err != nil {
 		log.Printf("could not parse env vars, using default options: %v", err)
-	}
-	// Defaulting.
-	// TODO(options): Consider moving this to a separate function/method.
-	if opts.Commit == "" {
-		opts.Commit = DefaultCommit
-	}
-	if opts.Format == "" {
-		opts.Format = FormatDefault
-	}
-	if opts.LogLevel == "" {
-		opts.LogLevel = DefaultLogLevel
 	}
 	return opts
 }
@@ -88,6 +84,14 @@ const (
 	FormatDefault = "default"
 	// FormatRaw specifies that results should be output in raw format.
 	FormatRaw = "raw"
+	// FormatInToyo specifies that results should be output in an in-toto statement.
+	FormatInToto = "intoto"
+
+	// File Modes
+	// FileModeGit specifies that files should be fetched using git.
+	FileModeGit = "git"
+	// FileModeArchive specifies that files should be fetched using the export archive (tarball).
+	FileModeArchive = "archive"
 
 	// Environment variables.
 	// EnvVarEnableSarif is the environment variable which controls enabling
@@ -107,6 +111,7 @@ var (
 
 	errCommitIsEmpty          = errors.New("commit should be non-empty")
 	errFormatNotSupported     = errors.New("unsupported format")
+	errFileModeNotSupported   = errors.New("unsupported file mode")
 	errPolicyFileNotSupported = errors.New("policy file is not supported yet")
 	errRawOptionNotSupported  = errors.New("raw option is not supported yet")
 	errRepoOptionMustBeSet    = errors.New(
@@ -173,6 +178,13 @@ func (o *Options) Validate() error {
 		errs = append(
 			errs,
 			errCommitIsEmpty,
+		)
+	}
+
+	if !validateFileMode(o.FileMode) {
+		errs = append(
+			errs,
+			errFileModeNotSupported,
 		)
 	}
 
@@ -246,7 +258,16 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw:
+	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw, FormatInToto:
+		return true
+	default:
+		return false
+	}
+}
+
+func validateFileMode(mode string) bool {
+	switch strings.ToLower(mode) {
+	case FileModeGit, FileModeArchive:
 		return true
 	default:
 		return false

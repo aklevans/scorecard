@@ -25,8 +25,8 @@ import (
 )
 
 type Repo struct {
-	host, owner, repo, defaultBranch, commitSHA string
-	metadata                                    []string
+	host, owner, repo, defaultBranch, commitSHA, commitDate string
+	metadata                                                []string
 }
 
 // Parses input string into repoURL struct.

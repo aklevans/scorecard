@@ -48,7 +48,6 @@ func Test_GenerateBQSchema(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -74,7 +73,7 @@ func Test_GenerateBQSchema(t *testing.T) {
 			}
 
 			if !cmp.Equal(result, expected.String()) {
-				t.Errorf(cmp.Diff(result, expected.String()))
+				t.Error(cmp.Diff(result, expected.String()))
 			}
 		})
 	}
@@ -106,7 +105,6 @@ func Test_GenerateJSONSchema(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -129,7 +127,7 @@ func Test_GenerateJSONSchema(t *testing.T) {
 			result := GenerateJSONSchema(tt.structure)
 
 			if !cmp.Equal(result, expected.String()) {
-				t.Errorf(cmp.Diff(result, expected.String()))
+				t.Error(cmp.Diff(result, expected.String()))
 			}
 		})
 	}

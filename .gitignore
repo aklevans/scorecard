@@ -46,6 +46,7 @@ e2e-coverage.out
 
 # tools
 bin
+obj
 
 cache
 output
@@ -59,3 +60,10 @@ dist/*
 repos.txt
 oldRelease.json
 newRelease.json
+
+# Ignore golang's vendored files
+/vendor/
+/tools/vendor/
+
+
+nohup.out

@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -156,22 +157,15 @@ func Test_formatResults_outputToFile(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			// generate a unique result file in a temp directory for every test run to avoid race conditions in the test.
 			// This can happen when ginkgo runs unit tests in parallel (with -p flag)
-			resultFile, err := os.CreateTemp("", "result-file")
-			if err != nil {
-				t.Fatalf("create temp result file: %v", err)
-			}
-			tt.args.opts.ResultsFile = resultFile.Name()
+			tt.args.opts.ResultsFile = filepath.Join(t.TempDir(), "result-file")
 
 			// Format results.
 			formatErr := FormatResults(tt.args.opts, tt.args.results, tt.args.doc, tt.args.policy)
-			// Delete generated output file at the end of the test.
-			t.Cleanup(func() { os.Remove(tt.args.opts.ResultsFile) })
 			if (formatErr != nil) != tt.want.err {
 				t.Fatalf("FormatResults() error = %v, want error %v", formatErr, tt.want.err)
 			}

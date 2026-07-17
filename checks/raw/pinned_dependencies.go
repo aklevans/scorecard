@@ -29,8 +29,20 @@ import (
 	"github.com/ossf/scorecard/v5/checks/fileparser"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/dotnet/csproj"
+	"github.com/ossf/scorecard/v5/internal/dotnet/properties"
 	"github.com/ossf/scorecard/v5/remediation"
 )
+
+type dotnetCsprojLockedData struct {
+	Path          string
+	LockedModeSet bool
+}
+
+type nugetPostProcessData struct {
+	CsprojConfigs []dotnetCsprojLockedData
+	CpmConfig     properties.CentralPackageManagementConfig
+}
 
 // PinningDependencies checks for (un)pinned dependencies.
 func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesData, error) {
@@ -61,7 +73,204 @@ func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesDa
 		return checker.PinningDependenciesData{}, err
 	}
 
+	// Nuget Post Processing
+	if err := postProcessNugetDependencies(c, &results); err != nil {
+		return checker.PinningDependenciesData{}, err
+	}
+
 	return results, nil
+}
+
+func postProcessNugetDependencies(c *checker.CheckRequest,
+	pinningDependenciesData *checker.PinningDependenciesData,
+) error {
+	unpinnedDependencies := getUnpinnedNugetDependencies(pinningDependenciesData)
+	if len(unpinnedDependencies) == 0 {
+		return nil
+	}
+	var nugetPostProcessData nugetPostProcessData
+	if err := retrieveNugetCentralPackageManagement(c, &nugetPostProcessData); err != nil {
+		return err
+	}
+	if err := retrieveCsprojConfig(c, &nugetPostProcessData); err != nil {
+		return err
+	}
+	if nugetPostProcessData.CpmConfig.IsCPMEnabled {
+		collectPostProcessNugetCPMDependencies(unpinnedDependencies, &nugetPostProcessData)
+	} else {
+		collectPostProcessNugetCsprojDependencies(unpinnedDependencies, &nugetPostProcessData)
+	}
+
+	return nil
+}
+
+func collectPostProcessNugetCPMDependencies(unpinnedNugetDependencies []*checker.Dependency,
+	postProcessingData *nugetPostProcessData,
+) {
+	packageVersions := postProcessingData.CpmConfig.PackageVersions
+
+	numUnfixedVersions, unfixedVersions := countUnfixedVersions(packageVersions)
+	// if all dependencies are fixed to specific versions, pin all dependencies
+	if numUnfixedVersions == 0 {
+		pinAllNugetDependencies(unpinnedNugetDependencies)
+		return
+	}
+	// if some or all dependencies are not fixed to specific versions, update the remediation
+	for i := range unpinnedNugetDependencies {
+		(unpinnedNugetDependencies)[i].Remediation.Text = (unpinnedNugetDependencies)[i].Remediation.Text +
+			": some of dependency versions are not fixes to specific versions: " + unfixedVersions
+	}
+}
+
+func retrieveNugetCentralPackageManagement(c *checker.CheckRequest, nugetPostProcessData *nugetPostProcessData) error {
+	if err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "Directory.*.props",
+		CaseSensitive: false,
+	}, processDirectoryPropsFile, nugetPostProcessData, c.Dlogger); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func processDirectoryPropsFile(path string, content []byte, args ...interface{}) (bool, error) {
+	pdata, ok := args[0].(*nugetPostProcessData)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type nugetPostProcessData, got %v", reflect.TypeOf(args[0])))
+	}
+
+	cpmConfig, err := properties.GetCentralPackageManagementConfig(path, content)
+	if err != nil {
+		dl, ok := args[1].(checker.DetailLogger)
+		if !ok {
+			// panic if it is not correct type
+			panic(fmt.Sprintf("expected type checker.DetailLogger, got %v", reflect.TypeOf(args[1])))
+		}
+
+		dl.Warn(&checker.LogMessage{
+			Text: fmt.Sprintf("malformed properties file: %v", err),
+		})
+		return true, nil
+	}
+	pdata.CpmConfig = cpmConfig
+	return false, nil
+}
+
+func getUnpinnedNugetDependencies(pinningDependenciesData *checker.PinningDependenciesData) []*checker.Dependency {
+	var unpinnedNugetDependencies []*checker.Dependency
+	nugetDependencies := getDependenciesByType(pinningDependenciesData, checker.DependencyUseTypeNugetCommand)
+	for i := range nugetDependencies {
+		if !*nugetDependencies[i].Pinned {
+			unpinnedNugetDependencies = append(unpinnedNugetDependencies, nugetDependencies[i])
+		}
+	}
+	return unpinnedNugetDependencies
+}
+
+func getDependenciesByType(p *checker.PinningDependenciesData,
+	useType checker.DependencyUseType,
+) []*checker.Dependency {
+	var deps []*checker.Dependency
+	for i := range p.Dependencies {
+		if p.Dependencies[i].Type == useType {
+			deps = append(deps, &p.Dependencies[i])
+		}
+	}
+	return deps
+}
+
+func collectPostProcessNugetCsprojDependencies(unpinnedNugetDependencies []*checker.Dependency,
+	postProcessingData *nugetPostProcessData,
+) {
+	unlockedCsprojDeps, unlockedPath := countUnlocked(postProcessingData.CsprojConfigs)
+	switch unlockedCsprojDeps {
+	case len(postProcessingData.CsprojConfigs):
+		// none of the csproject files set RestoreLockedMode. Keep the same status of the nuget dependencies
+		return
+	case 0:
+		// all csproj files set RestoreLockedMode, update the dependency pinning status of all nuget dependencies to pinned
+		pinAllNugetDependencies(unpinnedNugetDependencies)
+	default:
+		// only some csproj files are locked, keep the same status of the nuget dependencies but create a remediation
+		for i := range unpinnedNugetDependencies {
+			(unpinnedNugetDependencies)[i].Remediation.Text = (unpinnedNugetDependencies)[i].Remediation.Text +
+				": some of your csproj files set the RestoreLockedMode property to true, " +
+				"while other do not set it: " + unlockedPath
+		}
+	}
+}
+
+func pinAllNugetDependencies(dependencies []*checker.Dependency) {
+	for i := range dependencies {
+		if dependencies[i].Type == checker.DependencyUseTypeNugetCommand {
+			dependencies[i].Pinned = asBoolPointer(true)
+			dependencies[i].Remediation = nil
+		}
+	}
+}
+
+func retrieveCsprojConfig(c *checker.CheckRequest, nugetPostProcessData *nugetPostProcessData) error {
+	if err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "*.csproj",
+		CaseSensitive: false,
+	}, analyseCsprojLockedMode, &nugetPostProcessData.CsprojConfigs, c.Dlogger); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func analyseCsprojLockedMode(path string, content []byte, args ...interface{}) (bool, error) {
+	pdata, ok := args[0].(*[]dotnetCsprojLockedData)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type *[]dotnetCsprojLockedData, got %v", reflect.TypeOf(args[0])))
+	}
+
+	pinned, err := csproj.IsRestoreLockedModeEnabled(content)
+	if err != nil {
+		dl, ok := args[1].(checker.DetailLogger)
+		if !ok {
+			// panic if it is not correct type
+			panic(fmt.Sprintf("expected type checker.DetailLogger, got %v", reflect.TypeOf(args[1])))
+		}
+
+		dl.Warn(&checker.LogMessage{
+			Text: fmt.Sprintf("malformed csproj file: %v", err),
+		})
+		return true, nil
+	}
+
+	csprojData := dotnetCsprojLockedData{
+		Path:          path,
+		LockedModeSet: pinned,
+	}
+
+	*pdata = append(*pdata, csprojData)
+	return true, nil
+}
+
+func countUnlocked(csprojFiles []dotnetCsprojLockedData) (int, string) {
+	var unlockedPaths []string
+
+	for i := range csprojFiles {
+		if !csprojFiles[i].LockedModeSet {
+			unlockedPaths = append(unlockedPaths, csprojFiles[i].Path)
+		}
+	}
+	return len(unlockedPaths), strings.Join(unlockedPaths, ", ")
+}
+
+func countUnfixedVersions(packages []properties.NugetPackage) (int, string) {
+	var unfixedVersions []string
+
+	for i := range packages {
+		if !packages[i].IsFixed {
+			unfixedVersions = append(unfixedVersions, packages[i].Version)
+		}
+	}
+	return len(unfixedVersions), strings.Join(unfixedVersions, ", ")
 }
 
 func dataAsPinnedDependenciesPointer(data interface{}) *checker.PinningDependenciesData {
@@ -302,6 +511,9 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		switch {
 		// scratch is no-op.
 		case len(valueList) > 0 && strings.EqualFold(valueList[0], "scratch"):
+			if len(valueList) == 3 && strings.EqualFold(valueList[1], "as") {
+				pinnedAsNames[valueList[2]] = true
+			}
 			continue
 
 		// FROM name AS newname.
@@ -312,9 +524,11 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 			// (1): name = <>@sha245:hash
 			// (2): name = XXX where XXX was pinned
 			pinned := pinnedAsNames[name]
+			// Record the asName.
 			if pinned || regex.MatchString(name) {
-				// Record the asName.
 				pinnedAsNames[asName] = true
+			} else {
+				pinnedAsNames[asName] = false
 			}
 
 			pdata.Dependencies = append(pdata.Dependencies,
@@ -408,15 +622,12 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
 	for jobName, job := range workflow.Jobs {
-		jobName := jobName
-		job := job
 		if len(fileparser.GetJobName(job)) > 0 {
 			jobName = fileparser.GetJobName(job)
 		}
 		taintedFiles := make(map[string]bool)
 
 		for _, step := range job.Steps {
-			step := step
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
 				continue
 			}
@@ -530,8 +741,6 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	}
 
 	for jobName, job := range workflow.Jobs {
-		jobName := jobName
-		job := job
 		if len(fileparser.GetJobName(job)) > 0 {
 			jobName = fileparser.GetJobName(job)
 		}

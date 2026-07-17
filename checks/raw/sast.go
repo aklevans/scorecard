@@ -28,6 +28,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
+	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 )
@@ -41,6 +42,7 @@ var sastTools = map[string]bool{
 	"github-code-scanning":     true,
 	"lgtm-com":                 true,
 	"sonarcloud":               true,
+	"sonarqubecloud":           true,
 }
 
 var allowedConclusions = map[string]bool{"success": true, "neutral": true}
@@ -92,6 +94,10 @@ func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) 
 	var sastCommits []checker.SASTCommit
 	commits, err := c.RepoClient.ListCommits()
 	if err != nil {
+		// ignoring check for local dir
+		if errors.Is(err, clients.ErrUnsupportedFeature) {
+			return sastCommits, nil
+		}
 		return sastCommits,
 			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListCommits: %v", err))
 	}

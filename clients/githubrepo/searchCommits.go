@@ -36,10 +36,11 @@ func (handler *searchCommitsHandler) init(ctx context.Context, repourl *Repo) {
 }
 
 func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
-	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-		return nil, fmt.Errorf(
-			"%w: Search only supported for HEAD queries", clients.ErrUnsupportedFeature)
-	}
+
+	// if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
+	// 	return nil, fmt.Errorf(
+	// 		"%w: Search only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	// }
 	query, err := handler.buildQuery(request)
 	if err != nil {
 		return nil, fmt.Errorf("handler.buildQuery: %w", err)
@@ -61,9 +62,9 @@ func (handler *searchCommitsHandler) buildQuery(request clients.SearchCommitsOpt
 	}
 	var queryBuilder strings.Builder
 	if _, err := queryBuilder.WriteString(
-		fmt.Sprintf("repo:%s/%s author:%s",
+		fmt.Sprintf("repo:%s/%s author:%s committer-date:<%s",
 			handler.repourl.owner, handler.repourl.repo,
-			request.Author)); err != nil {
+			request.Author, request.CommitterDate)); err != nil {
 		return "", fmt.Errorf("WriteString: %w", err)
 	}
 

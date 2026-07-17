@@ -33,6 +33,7 @@ func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.CommitBased,
 	}
+
 	if err := registerCheck(CheckMaintained, Maintained, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)

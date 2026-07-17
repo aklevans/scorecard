@@ -133,7 +133,7 @@ GitLab Integration Status:
 
 **Remediation steps**
 - Enable branch protection settings in your source hosting provider to avoid force pushes or deletion of your important branches.
-- For GitHub, check out the steps [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).
+- For GitHub, check out the steps for rulesets [here](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository) and rules [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).
 
 ## CI-Tests 
 
@@ -149,7 +149,7 @@ number of vulnerabilities that find their way into a project.
 The check works by looking for a set of CI-system names in GitHub `CheckRuns`
 and `Statuses` among the recent commits (~30). A CI-system is considered
 well-known if its name contains any of the following: appveyor, buildkite,
-circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci.
+circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci, woodpecker.
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to implement CI testing, and it is
@@ -343,6 +343,7 @@ This check tries to determine if the project uses
    - currently only supports [Go fuzzing](https://go.dev/doc/fuzz/),
    - a limited set of property-based testing libraries for Haskell including [QuickCheck](https://hackage.haskell.org/package/QuickCheck), [Hedgehog](https://hedgehog.qa/), [validity](https://hackage.haskell.org/package/validity) or [SmallCheck](https://hackage.haskell.org/package/smallcheck),
    - a limited set of property-based testing libraries for JavaScript and TypeScript including [fast-check](https://fast-check.dev/).
+   - a limited set of property-based testing libraries for Erlang, including proper and quickcheck.
 
 Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
 into a program to expose bugs. Regular fuzzing is important to detect
@@ -554,7 +555,7 @@ allows them to identify vulnerabilities in the software supply chain.
 
 Standards to be used during checks;
 - OSSF SBOM Everywhere SIG naming and directory conventions:
-  - <https://github.com/ossf/SBOM-everywhere/blob/main/reference/SBOM_naming.md#consistent-naming-conventions>
+  - <https://github.com/ossf/SBOM-everywhere/blob/main/reference/sbom_naming.md#consistent-naming-conventions>
 
 This check currently looks for the existence of an SBOM in the
 source of a project and as a pipeline or release artifact.

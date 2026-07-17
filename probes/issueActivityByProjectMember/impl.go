@@ -52,10 +52,15 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	numberOfIssuesUpdatedWithinThreshold := 0
 
 	// Look for activity in past `lookBackDays`.
+<<<<<<< HEAD
+	// threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
+	threshold := r.DefaultBranchCommits[0].CommittedDate.AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
+=======
 	// set threshold based on commit date, not current date to approximate what the score would have been
 	// when the commit was made
 	threshold := r.DefaultBranchCommits[0].CommittedDate.AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 	// threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
+>>>>>>> origin/local-checks
 	var findings []finding.Finding
 	for i := range r.Issues {
 		if hasActivityByCollaboratorOrHigher(&r.Issues[i], threshold) {
@@ -93,12 +98,18 @@ func hasActivityByCollaboratorOrHigher(issue *clients.Issue, threshold time.Time
 		return false
 	}
 
-	if issue.AuthorAssociation.Gte(clients.RepoAssociationCollaborator) &&
+	hasAuthorAssociation := issue.AuthorAssociation != nil
+
+	if hasAuthorAssociation &&
+		issue.AuthorAssociation.Gte(clients.RepoAssociationCollaborator) &&
 		issue.CreatedAt != nil && issue.CreatedAt.After(threshold) {
 		// The creator of the issue is a collaborator or higher.
 		return true
 	}
 	for _, comment := range issue.Comments {
+		if comment.AuthorAssociation == nil {
+			continue
+		}
 		if comment.AuthorAssociation.Gte(clients.RepoAssociationCollaborator) &&
 			comment.CreatedAt != nil &&
 			comment.CreatedAt.After(threshold) {
